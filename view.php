@@ -67,8 +67,6 @@ $mform = new hotquestion_form();
 
 if ($fromform=$mform->get_data()){
 	
-    add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id);
-
 	$data->hotquestion = $hotquestion->id;
 	$data->content = trim($fromform->question);
     if (!empty($data->content)){
@@ -79,8 +77,9 @@ if ($fromform=$mform->get_data()){
         redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
     }
 
+    add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
+
     // Set current user as the first voter
-	$votes->hotquestion = $hotquestion->id;
 	$votes->question = $questionid;
     $votes->voter = $USER->id;
     if(!insert_record('hotquestion_votes', $votes)){
@@ -154,6 +153,7 @@ if($questions){
 
     $table->cellpadding = 10;
     $table->width = '70%';
+    $table->class = 'generaltable';
     $table->align = array ('left', 'center');
     $table->size = array('', '1%');
 

@@ -15,10 +15,6 @@
  *     actions across all modules.
  */
 
-/// (replace hotquestion with the name of your module and delete this line)
-
-$hotquestion_EXAMPLE_CONSTANT = 42;     /// for example
-
 
 /**
  * Given an object containing all the necessary data,
@@ -74,7 +70,15 @@ function hotquestion_delete_instance($id) {
 
     $result = true;
 
-    # Delete any dependent records here #
+    $questions = get_records('hotquestion_questions', 'hotquestion', $hotquestion->id);
+    foreach ($questions as $question) {
+        if (! delete_records('hotquestion_votes', 'question', $question->id))
+            $result = false;
+    }
+    
+    if (! delete_records('hotquestion_questions', 'hotquestions', $hotquestion->id)) {
+        $result = false;
+    }
 
     if (! delete_records('hotquestion', 'id', $hotquestion->id)) {
         $result = false;
