@@ -44,9 +44,8 @@ if ($id) {
     error('You must specify a course_module ID or an instance ID');
 }
 
-require_login($course, true, $cm);
-
-add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
+$context = get_context_instance(CONTEXT_MODULE, $cm->id);
+require_capability('mod/hotquestion:view', $context);
 
 /// Print the page header
 $strhotquestions = get_string('modulenameplural', 'hotquestion');
@@ -63,18 +62,22 @@ print_header_simple(format_string($hotquestion->name), '', $navigation, '', '', 
 
 /// Print the main part of the page
 
-
+//TODO: has_cap ask
 $mform = new hotquestion_form();
 
 if ($fromform=$mform->get_data()){
 	
-	//print_object($fromform);
+    add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id);
 
 	$data->hotquestion = $hotquestion->id;
-	$data->content = $fromform->question;
-	if(!($questionid = insert_record('hotquestion_questions', $data))){
-		error("error in inserting questions!");
-	}
+	$data->content = trim($fromform->question);
+    if (!empty($data->content)){
+        if(!($questionid = insert_record('hotquestion_questions', $data))){
+            error("error in inserting questions!");
+        }
+    } else {
+        redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+    }
 
     // Set current user as the first voter
 	$votes->hotquestion = $hotquestion->id;
@@ -89,57 +92,90 @@ if ($fromform=$mform->get_data()){
 }
 
 //handle the new votes
-//TODO: 判断是否有投票权
-$q  = optional_param('q', -1, PARAM_INT);  // question ID to vote
-if($q != -1 && !has_voted($q)){
-    $votes->hotquestion = $hotquestion->id;
-    $votes->question = $q;
-    $votes->voter = $USER->id;
+$action  = optional_param('action', '', PARAM_ACTION);  // Vote or unvote
+if (!empty($action)) {
+    switch ($action) {
 
-    if(!insert_record("hotquestion_votes", $votes)){
-        error("error in inserting the votes!");
+    case 'vote':
+        require_capability('mod/hotquestion:vote', $context);
+        $q  = required_param('q', PARAM_INT);  // question ID to vote
+
+        add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
+
+        if (!has_voted($q)){
+            $votes->question = $q;
+            $votes->voter = $USER->id;
+
+            if(!insert_record('hotquestion_votes', $votes)){
+                error("error in inserting the votes!");
+            }
+        }
+        break;
+
+    case 'unvote':
+        require_capability('mod/hotquestion:vote', $context);
+        $q  = required_param('q', PARAM_INT);  // question ID to vote
+
+        add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
+
+        if (has_voted($q)){
+            delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id);
+        }
     }
+
 }
 
-$context = get_context_instance(CONTEXT_MODULE, $cm->id);
-if(has_capability('mod/hotquestion:view', $context)){
+// Print hotquestion description
+if (trim($hotquestion->intro)) {
+   $formatoptions->noclean = true;
+   $formatoptions->para    = false;
+   print_box(format_text($hotquestion->intro, FORMAT_MOODLE, $formatoptions), 'generalbox', 'intro');
+}
+
+if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
 }
+
+add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
 $qusetions = new stdclass;
 $questions->question_text = 0;
 $questions->hotquestion = 0;
 $questions->question_content = '';
-//题目ID 所属活动 支持人数
-$questions = get_records_sql("SELECT q.id, q.content, count(*) as count
-                              FROM {$CFG->prefix}hotquestion_votes v,
-                              {$CFG->prefix}hotquestion_questions q
-                              WHERE v.question = q.id                              
-                              AND   q.hotquestion = $hotquestion->id
+$questions = get_records_sql("SELECT q.id, q.content, count(v.voter) as count
+                              FROM {$CFG->prefix}hotquestion_questions q
+                              LEFT JOIN {$CFG->prefix}hotquestion_votes v
+                              ON v.question = q.id
+                              WHERE q.hotquestion = $hotquestion->id
                               GROUP BY v.question
-                              ORDER BY count(*) DESC");                              
+                              ORDER BY count DESC");                              
 
 if($questions){
-    $table->align = array ('left', 'right');//每一列在表格的left or right
 
     $table->cellpadding = 10;
     $table->width = '70%';
+    $table->align = array ('left', 'center');
+    $table->size = array('', '1%');
 
-    $table->head = array('a', 'b');
+    $table->head = array(get_string('question', 'hotquestion'), get_string('heat', 'hotquestion'));
 
     foreach ($questions as $question) {
         $line = array();
-        $line[] = $question->content;
+
+        $formatoptions->para  = false;
+        $qtext = format_text($question->content, FORMAT_MOODLE, $formatoptions);
         
-        $degree = $question->count;
         //print_object($question);
-        if(has_capability('mod/hotquestion:view', $context)){
-            if(!has_voted($question->id)){
-                $degree .= "<a href=\"view.php?id=$cm->id&amp;q=$question->id\">
-                    <img src=\"$CFG->pixpath/t/up.gif\"/></a>";
+        if (has_capability('mod/hotquestion:vote', $context)){
+            if (!has_voted($question->id)){
+                $qtext .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=vote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/yes.gif" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
+            } else {
+                $qtext .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=unvote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/no.gif" title="'.get_string('unvote', 'hotquestion') .'" alt="'. get_string('unvote', 'hotquestion') .'"/></a>';
             }
         }
-        $line[] = $degree;
+
+        $line[] = $qtext;
+        $line[] = $question->count;
 
         $table->data[] = $line;
     }//for

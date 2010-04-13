@@ -55,6 +55,8 @@
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('hotquestion', 'add', 'hotquestion', 'name')" />
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('hotquestion', 'update', 'hotquestion', 'name')" />
         <SENTENCE TEXT="(module, action, mtable, field) VALUES ('hotquestion', 'view', 'hotquestion', 'name')" />
+        <SENTENCE TEXT="(module, action, mtable, field) VALUES ('hotquestion', 'add question', 'hotquestion_questions', 'name')" />
+        <SENTENCE TEXT="(module, action, mtable, field) VALUES ('hotquestion', 'vote', 'hotquestion_questions', 'name')" />
       </SENTENCES>
     </STATEMENT>
   </STATEMENTS>
