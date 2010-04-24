@@ -152,7 +152,6 @@ $questions = get_records_sql("SELECT q.id, q.content, count(v.voter) as count
 if($questions){
 
     $table->cellpadding = 10;
-    $table->width = '70%';
     $table->class = 'generaltable';
     $table->align = array ('left', 'center');
     $table->size = array('', '1%');
@@ -163,19 +162,18 @@ if($questions){
         $line = array();
 
         $formatoptions->para  = false;
-        $qtext = format_text($question->content, FORMAT_MOODLE, $formatoptions);
+        $line[] = format_text($question->content, FORMAT_MOODLE, $formatoptions);
         
-        //print_object($question);
+        $heat = $question->count;
         if (has_capability('mod/hotquestion:vote', $context)){
             if (!has_voted($question->id)){
-                $qtext .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=vote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/yes.gif" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
+                $heat .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=vote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/yes.gif" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
             } else {
-                $qtext .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=unvote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/no.gif" title="'.get_string('unvote', 'hotquestion') .'" alt="'. get_string('unvote', 'hotquestion') .'"/></a>';
+                $heat .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=unvote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/no.gif" title="'.get_string('unvote', 'hotquestion') .'" alt="'. get_string('unvote', 'hotquestion') .'"/></a>';
             }
         }
 
-        $line[] = $qtext;
-        $line[] = $question->count;
+        $line[] = $heat;
 
         $table->data[] = $line;
     }//for
