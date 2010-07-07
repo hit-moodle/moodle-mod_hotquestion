@@ -8,8 +8,6 @@
  * @package mod/hotquestion
  */
 
-/// (Replace hotquestion with the name of your module and remove this line)
-
 require_once("../../config.php");
 require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
 
@@ -69,6 +67,9 @@ if ($fromform=$mform->get_data()){
 	
 	$data->hotquestion = $hotquestion->id;
 	$data->content = trim($fromform->question);
+    $data->userid = $USER->id;
+    $data->time = time();
+
     if (!empty($data->content)){
         if(!($questionid = insert_record('hotquestion_questions', $data))){
             error("error in inserting questions!");
@@ -78,13 +79,6 @@ if ($fromform=$mform->get_data()){
     }
 
     add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
-
-    // Set current user as the first voter
-	$votes->question = $questionid;
-    $votes->voter = $USER->id;
-    if(!insert_record('hotquestion_votes', $votes)){
-        error("error in inserting the votes!");
-    }
 
     // Redirect to show questions. So that the page can be refreshed
 	redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
@@ -96,29 +90,27 @@ if (!empty($action)) {
     switch ($action) {
 
     case 'vote':
-        require_capability('mod/hotquestion:vote', $context);
-        $q  = required_param('q', PARAM_INT);  // question ID to vote
-
-        add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
-
-        if (!has_voted($q)){
-            $votes->question = $q;
-            $votes->voter = $USER->id;
-
-            if(!insert_record('hotquestion_votes', $votes)){
-                error("error in inserting the votes!");
-            }
-        }
-        break;
-
     case 'unvote':
         require_capability('mod/hotquestion:vote', $context);
         $q  = required_param('q', PARAM_INT);  // question ID to vote
+        $question = get_record('hotquestion_questions', 'id', $q);
+        if ($question && $USER->id != $question->userid) {
+            add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
 
-        add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
+            if ($action == 'vote') {
+                if (!has_voted($q)){
+                    $votes->question = $q;
+                    $votes->voter = $USER->id;
 
-        if (has_voted($q)){
-            delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id);
+                    if(!insert_record('hotquestion_votes', $votes)){
+                        error("error in inserting the votes!");
+                    }
+                }
+            } else {
+                if (has_voted($q)){
+                    delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id);
+                }
+            }
         }
     }
 
@@ -137,16 +129,12 @@ if(has_capability('mod/hotquestion:ask', $context)){
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
-$qusetions = new stdclass;
-$questions->question_text = 0;
-$questions->hotquestion = 0;
-$questions->question_content = '';
-$questions = get_records_sql("SELECT q.id, q.content, count(v.voter) as count
+$questions = get_records_sql("SELECT q.id, q.content, q.userid, q.time, count(v.voter) as count
                               FROM {$CFG->prefix}hotquestion_questions q
                               LEFT JOIN {$CFG->prefix}hotquestion_votes v
                               ON v.question = q.id
                               WHERE q.hotquestion = $hotquestion->id
-                              GROUP BY v.question
+                              GROUP BY q.id
                               ORDER BY count DESC");                              
 
 if($questions){
@@ -162,14 +150,23 @@ if($questions){
         $line = array();
 
         $formatoptions->para  = false;
-        $line[] = format_text($question->content, FORMAT_MOODLE, $formatoptions);
+        $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
+        
+        $user = get_record('user', 'id', $question->userid);
+        $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $course->id . '">' . fullname($user) . '</a>';
+        $a->time = userdate($question->time).'&nbsp('.get_string('early', 'assignment', format_time(time() - $question->time)) . ')';
+        $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
+
+        $line[] = $content.$info;
         
         $heat = $question->count;
-        if (has_capability('mod/hotquestion:vote', $context)){
+        if (has_capability('mod/hotquestion:vote', $context) && $question->userid != $USER->id){
             if (!has_voted($question->id)){
                 $heat .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=vote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/yes.gif" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
             } else {
+                /* temply disable unvote to see effect
                 $heat .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=unvote&q='.$question->id.'"><img src="'.$CFG->pixpath.'/s/no.gif" title="'.get_string('unvote', 'hotquestion') .'" alt="'. get_string('unvote', 'hotquestion') .'"/></a>';
+                 */
             }
         }
 

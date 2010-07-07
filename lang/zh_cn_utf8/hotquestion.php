@@ -1,5 +1,6 @@
 <?php
 
+$string['authorinfo'] = '由{$a->user}在{$a->time}发表';
 $string['heat'] = '热度';
 $string['hotquestionfieldset'] = 'Custom example fieldset';
 $string['hotquestionintro'] = '主题';

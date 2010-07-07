@@ -1,5 +1,6 @@
 <?php
 
+$string['authorinfo'] = 'Posted by $a->user at $a->time';
 $string['heat'] = 'Heat';
 $string['hotquestion'] = 'hotquestion';
 $string['hotquestionfieldset'] = 'Custom example fieldset';
