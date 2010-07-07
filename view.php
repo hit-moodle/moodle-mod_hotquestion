@@ -58,30 +58,31 @@ $navigation = build_navigation($navlinks);
 print_header_simple(format_string($hotquestion->name), '', $navigation, '', '', true,
               update_module_button($cm->id, $course->id, $strhotquestion), navmenu($course, $cm));
 
-/// Print the main part of the page
 
 //TODO: has_cap ask
-$mform = new hotquestion_form();
+if(has_capability('mod/hotquestion:ask', $context)){
+    $mform = new hotquestion_form();
 
-if ($fromform=$mform->get_data()){
-	
-	$data->hotquestion = $hotquestion->id;
-	$data->content = trim($fromform->question);
-    $data->userid = $USER->id;
-    $data->time = time();
+    if ($fromform=$mform->get_data()){
 
-    if (!empty($data->content)){
-        if(!($questionid = insert_record('hotquestion_questions', $data))){
-            error("error in inserting questions!");
+        $data->hotquestion = $hotquestion->id;
+        $data->content = trim($fromform->question);
+        $data->userid = $USER->id;
+        $data->time = time();
+
+        if (!empty($data->content)){
+            if(!($questionid = insert_record('hotquestion_questions', $data))){
+                error("error in inserting questions!");
+            }
+        } else {
+            redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
         }
-    } else {
-        redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+
+        add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
+
+        // Redirect to show questions. So that the page can be refreshed
+        redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
     }
-
-    add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
-
-    // Redirect to show questions. So that the page can be refreshed
-	redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
 }
 
 //handle the new votes
@@ -115,6 +116,9 @@ if (!empty($action)) {
     }
 
 }
+
+/// Print the main part of the page
+
 
 // Print hotquestion description
 if (trim($hotquestion->intro)) {
