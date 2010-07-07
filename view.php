@@ -59,9 +59,8 @@ print_header_simple(format_string($hotquestion->name), '', $navigation, '', '', 
               update_module_button($cm->id, $course->id, $strhotquestion), navmenu($course, $cm));
 
 
-//TODO: has_cap ask
 if(has_capability('mod/hotquestion:ask', $context)){
-    $mform = new hotquestion_form();
+    $mform = new hotquestion_form($hotquestion->anonymouspost);
 
     if ($fromform=$mform->get_data()){
 
@@ -69,6 +68,8 @@ if(has_capability('mod/hotquestion:ask', $context)){
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
         $data->time = time();
+        if (isset($fromform->anonymous) && $hotquestion->anonymouspost)
+            $data->anonymous = $fromform->anonymous;
 
         if (!empty($data->content)){
             if(!($questionid = insert_record('hotquestion_questions', $data))){
@@ -114,7 +115,6 @@ if (!empty($action)) {
             }
         }
     }
-
 }
 
 /// Print the main part of the page
@@ -127,19 +127,23 @@ if (trim($hotquestion->intro)) {
    print_box(format_text($hotquestion->intro, FORMAT_MOODLE, $formatoptions), 'generalbox', 'intro');
 }
 
+
+// Ask form
 if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
 }
 
+
+// Questions list
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
-$questions = get_records_sql("SELECT q.id, q.content, q.userid, q.time, count(v.voter) as count
+$questions = get_records_sql("SELECT q.*, count(v.voter) as count
                               FROM {$CFG->prefix}hotquestion_questions q
                               LEFT JOIN {$CFG->prefix}hotquestion_votes v
                               ON v.question = q.id
                               WHERE q.hotquestion = $hotquestion->id
                               GROUP BY q.id
-                              ORDER BY count DESC");                              
+                              ORDER BY count DESC");
 
 if($questions){
 
@@ -157,7 +161,11 @@ if($questions){
         $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
         
         $user = get_record('user', 'id', $question->userid);
-        $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $course->id . '">' . fullname($user) . '</a>';
+        if ($question->anonymous) {
+            $a->user = get_string('anonymous', 'hotquestion');
+        } else {
+            $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $course->id . '">' . fullname($user) . '</a>';
+        }
         $a->time = userdate($question->time).'&nbsp('.get_string('early', 'assignment', format_time(time() - $question->time)) . ')';
         $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
 

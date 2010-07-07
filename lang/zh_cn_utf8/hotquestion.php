@@ -1,6 +1,9 @@
 <?php
 
+$string['allowanonymouspost'] = '允许以匿名身份提问';
+$string['anonymous'] = '无名氏';
 $string['authorinfo'] = '由{$a->user}在{$a->time}发表';
+$string['displayasanonymous'] = '发布者显示为无名氏';
 $string['heat'] = '热度';
 $string['hotquestionfieldset'] = 'Custom example fieldset';
 $string['hotquestionintro'] = '主题';

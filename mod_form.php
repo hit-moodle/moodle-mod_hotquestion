@@ -52,6 +52,10 @@ class mod_hotquestion_mod_form extends moodleform_mod {
     /// Adding "introformat" field
         $mform->addElement('format', 'introformat', get_string('format'));
 
+    /// Adding 'anonymouspost' field
+        $mform->addElement('selectyesno', 'anonymouspost', get_string('allowanonymouspost', 'hotquestion'));
+        $mform->setDefault('anonymouspost', '1');
+
 //-------------------------------------------------------------------------------
         // add standard elements, common to all modules
         $features->groups = false;
@@ -70,6 +74,12 @@ class mod_hotquestion_mod_form extends moodleform_mod {
 
 //Form for submitting question
 class hotquestion_form extends moodleform {
+    var $anonymouspost;
+
+    function hotquestion_form($anonymouspost) {
+        $this->anonymouspost = $anonymouspost;
+        parent::moodleform();
+    }
 	
 	function definition() {
 		global $CFG, $cm;
@@ -79,7 +89,12 @@ class hotquestion_form extends moodleform {
         $mform->setType('question', PARAM_TEXT);
 		$mform->addElement('hidden', 'id', $cm->id);
 		
-        $mform->addElement('submit', 'submitbutton', get_string('submit'));
+        $submitgroup = array();
+        $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('post'));
+        if ($this->anonymouspost) {
+            $submitgroup[] =& $mform->createElement('checkbox', 'anonymous', '', get_string('displayasanonymous', 'hotquestion'));
+        }
+        $mform->addGroup($submitgroup);
 
     }
 }
