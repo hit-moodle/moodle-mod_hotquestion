@@ -79,9 +79,6 @@ if ($fromform=$mform->get_data()){
     }
 
     add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
-
-    // Redirect to show questions. So that the page can be refreshed
-	redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
 }
 
 //handle the new votes
