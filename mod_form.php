@@ -53,16 +53,14 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         $mform->addElement('format', 'introformat', get_string('format'));
 
 //-------------------------------------------------------------------------------
-    /// Adding the rest of hotquestion settings, spreeading all them into this fieldset
-    /// or adding more fieldsets ('header' elements) if needed for better logic
-        $mform->addElement('static', 'label1', 'hotquestionsetting1', 'Your hotquestion fields go here. Replace me!');
-
-        $mform->addElement('header', 'hotquestionfieldset', get_string('hotquestionfieldset', 'hotquestion'));
-        $mform->addElement('static', 'label2', 'hotquestionsetting2', 'Your hotquestion fields go here. Replace me!');
-
-//-------------------------------------------------------------------------------
         // add standard elements, common to all modules
-        $this->standard_coursemodule_elements();
+        $features->groups = false;
+        $features->groupings = false;
+        $features->groupmembersonly = false;
+        $features->outcomes = false;
+        $features->gradecat = false;
+        $features->idnumber = false;
+        $this->standard_coursemodule_elements($features);
 //-------------------------------------------------------------------------------
         // add standard buttons, common to all modules
         $this->add_action_buttons();
