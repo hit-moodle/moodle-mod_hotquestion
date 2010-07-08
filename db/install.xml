@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/hotquestion/db" VERSION="20100707" COMMENT="XMLDB file for Moodle mod/hotquestion"
+<XMLDB PATH="mod/hotquestion/db" VERSION="20100708" COMMENT="XMLDB file for Moodle mod/hotquestion"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -39,7 +39,7 @@
         <INDEX NAME="time" UNIQUE="false" FIELDS="time"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="hotquestion_votes" COMMENT="Record who votes to this question." PREVIOUS="hotquestion_questions" NEXT="hotquestion_intervals">
+    <TABLE NAME="hotquestion_votes" COMMENT="Record who votes to this question." PREVIOUS="hotquestion_questions" NEXT="hotquestion_rounds">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="question"/>
         <FIELD NAME="question" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" COMMENT="ID of questions" PREVIOUS="id" NEXT="voter"/>
@@ -53,7 +53,7 @@
         <INDEX NAME="voter" UNIQUE="false" FIELDS="voter"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="hotquestion_intervals" COMMENT="Vote window interval" PREVIOUS="hotquestion_votes">
+    <TABLE NAME="hotquestion_rounds" COMMENT="Vote window interval" PREVIOUS="hotquestion_votes">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="hotquestion"/>
         <FIELD NAME="hotquestion" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="starttime"/>

@@ -114,6 +114,18 @@ if (!empty($action)) {
                 }
             }
         }
+        break;
+
+    case 'newround':
+        // Close the latest round
+        $old = array_pop(get_records('hotquestion_rounds', 'hotquestion', $hotquestion->id, 'id DESC', '*', '', 1));
+        $old->endtime = time();
+        update_record('hotquestion_rounds', $old);
+        // Open a new round
+        $new->hotquestion = $hotquestion->id;
+        $new->starttime = time();
+        $new->endtime = 0;
+        insert_record('hotquestion_rounds', $new);
     }
 }
 
@@ -134,14 +146,63 @@ if(has_capability('mod/hotquestion:ask', $context)){
 }
 
 
-// Questions list
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
+// Look for round
+$rounds = get_records('hotquestion_rounds', 'hotquestion', $hotquestion->id, 'id ASC');
+$roundid  = optional_param('round', -1, PARAM_INT);
+
+$ids = array_keys($rounds);
+if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
+    $current_round = $rounds[$roundid];
+    $current_key = array_search($roundid, $ids);
+    if (array_key_exists($current_key-1, $ids)) {
+        $prev_round = $rounds[$ids[$current_key-1]];
+    }
+    if (array_key_exists($current_key+1, $ids)) {
+        $next_round = $rounds[$ids[$current_key+1]];
+    }
+
+    $roundnum = $current_key+1;
+} else {
+    // Use the last round
+    $current_round = array_pop($rounds);
+    $prev_round = array_pop($rounds);
+    $roundnum = array_search($current_round->id, $ids) + 1;
+}
+
+// Print round toolbar
+echo '<div id="toolbar">';
+if (!empty($prev_round))
+    echo '<a href="view.php?id='.$cm->id.'&round='.$prev_round->id.'">('.get_string('previous').')</a> ';
+print_string('round', 'hotquestion', $roundnum);
+/*echo ': ';
+echo userdate($current_round->starttime).' - ';
+if ($current_round->endtime) {
+    echo userdate($current_round->endtime);
+} else {
+    echo '???';
+}*/
+if (!empty($next_round))
+    echo ' <a href="view.php?id='.$cm->id.'&round='.$next_round->id.'">('.get_string('next').')</a>';
+if (has_capability('mod/hotquestion:manage', $context)) {
+    $options = array();
+    $options['id'] = $cm->id;
+    $options['action'] = 'newround';
+    print_single_button('view.php', $options, get_string('newround', 'hotquestion'), 'get', '_self', false, '', false, get_string('newroundconfirm', 'hotquestion'));
+}
+echo '</div>';
+
+// Questions list
+if ($current_round->endtime == 0)
+    $current_round->endtime = 0xFFFFFFFF;  //Hack
 $questions = get_records_sql("SELECT q.*, count(v.voter) as count
                               FROM {$CFG->prefix}hotquestion_questions q
                               LEFT JOIN {$CFG->prefix}hotquestion_votes v
                               ON v.question = q.id
                               WHERE q.hotquestion = $hotquestion->id
+                                    AND q.time >= {$current_round->starttime}
+                                    AND q.time <= {$current_round->endtime}
                               GROUP BY q.id
                               ORDER BY count DESC");
 

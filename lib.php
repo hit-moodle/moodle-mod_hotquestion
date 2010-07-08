@@ -31,7 +31,18 @@ function hotquestion_add_instance($hotquestion) {
 
     # You may have to add extra stuff in here #
 
-    return insert_record('hotquestion', $hotquestion);
+    $id = insert_record('hotquestion', $hotquestion);
+    if ($id) {
+        // Create the first round
+        $round->starttime = time();
+        $round->endtime = 0;
+        $round->hotquestion = $id;
+        if (insert_record('hotquestion_rounds', $round)) {
+            return $id;
+        }
+    }
+
+    return false;
 }
 
 
@@ -76,7 +87,11 @@ function hotquestion_delete_instance($id) {
             $result = false;
     }
     
-    if (! delete_records('hotquestion_questions', 'hotquestions', $hotquestion->id)) {
+    if (! delete_records('hotquestion_questions', 'hotquestion', $hotquestion->id)) {
+        $result = false;
+    }
+
+    if (! delete_records('hotquestion_rounds', 'hotquestion', $hotquestion->id)) {
         $result = false;
     }
 
