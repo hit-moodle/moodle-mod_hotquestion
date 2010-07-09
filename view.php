@@ -204,7 +204,7 @@ $questions = get_records_sql("SELECT q.*, count(v.voter) as count
                                     AND q.time >= {$current_round->starttime}
                                     AND q.time <= {$current_round->endtime}
                               GROUP BY q.id
-                              ORDER BY count DESC");
+                              ORDER BY count DESC, q.time DESC");
 
 if($questions){
 
