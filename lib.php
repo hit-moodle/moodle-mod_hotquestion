@@ -1,4 +1,4 @@
-<?php  // $Id: lib.php,v 1.7.2.5 2009/04/22 21:30:57 skodak Exp $
+<?php
 
 /**
  * Library of functions and constants for module hotquestion
@@ -26,23 +26,24 @@
  * @return int The id of the newly inserted hotquestion record
  */
 function hotquestion_add_instance($hotquestion) {
+    global $DB;
 
     $hotquestion->timecreated = time();
 
     # You may have to add extra stuff in here #
 
-    $id = insert_record('hotquestion', $hotquestion);
-    if ($id) {
-        // Create the first round
-        $round->starttime = time();
-        $round->endtime = 0;
-        $round->hotquestion = $id;
-        if (insert_record('hotquestion_rounds', $round)) {
-            return $id;
-        }
+    $id = $DB->insert_record('hotquestion', $hotquestion);
+
+    // Create the first round
+    $round->starttime = time();
+    $round->endtime = 0;
+    $round->hotquestion = $id;
+
+    if ($DB->insert_record('hotquestion_rounds', $round)) {
+        return $id;
     }
 
-    return false;
+    return $id;
 }
 
 
@@ -54,14 +55,16 @@ function hotquestion_add_instance($hotquestion) {
  * @param object $hotquestion An object from the form in mod_form.php
  * @return boolean Success/Fail
  */
-function hotquestion_update_instance($hotquestion) {
+function hotquestion_update_instance($hotquestion, $mform) {
+    global $DB;
 
     $hotquestion->timemodified = time();
     $hotquestion->id = $hotquestion->instance;
 
     # You may have to add extra stuff in here #
 
-    return update_record('hotquestion', $hotquestion);
+    $DB->update_record('hotquestion', $hotquestion);
+    return true;
 }
 
 
@@ -74,28 +77,30 @@ function hotquestion_update_instance($hotquestion) {
  * @return boolean Success/Failure
  */
 function hotquestion_delete_instance($id) {
+    global $DB;
 
-    if (! $hotquestion = get_record('hotquestion', 'id', $id)) {
+    if (! $hotquestion = $DB->get_record('hotquestion', array('id', $id))) {
         return false;
     }
 
     $result = true;
 
-    $questions = get_records('hotquestion_questions', 'hotquestion', $hotquestion->id);
+    $questions = $DB->get_records('hotquestion_questions', array('hotquestion'=>$hotquestion->id));
     foreach ($questions as $question) {
-        if (! delete_records('hotquestion_votes', 'question', $question->id))
+        if (! $DB->delete_records('hotquestion_votes', array('question'=>$question->id))) {
             $result = false;
+        }
     }
-    
-    if (! delete_records('hotquestion_questions', 'hotquestion', $hotquestion->id)) {
+
+    if (! $DB->delete_records('hotquestion_questions', array('hotquestion'=>$hotquestion->id))) {
         $result = false;
     }
 
-    if (! delete_records('hotquestion_rounds', 'hotquestion', $hotquestion->id)) {
+    if (! $DB->delete_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id))) {
         $result = false;
     }
 
-    if (! delete_records('hotquestion', 'id', $hotquestion->id)) {
+    if (! $DB->delete_records('hotquestion', array('id'=>$hotquestion->id))) {
         $result = false;
     }
 
@@ -136,23 +141,9 @@ function hotquestion_user_complete($course, $user, $mod, $hotquestion) {
  * Return true if there was output, or false is there was none.
  *
  * @return boolean
- * @todo Finish documenting this function
  */
 function hotquestion_print_recent_activity($course, $isteacher, $timestart) {
     return false;  //  True if anything was printed, otherwise false
-}
-
-
-/**
- * Function to be run periodically according to the moodle cron
- * This function searches for things that need to be done, such
- * as sending out mail, toggling flags etc ...
- *
- * @return boolean
- * @todo Finish documenting this function
- **/
-function hotquestion_cron () {
-    return true;
 }
 
 
@@ -178,7 +169,6 @@ function hotquestion_get_participants($hotquestionid) {
  *
  * @param int $hotquestionid ID of an instance of this module
  * @return mixed
- * @todo Finish documenting this function
  */
 function hotquestion_scale_used($hotquestionid, $scaleid) {
     $return = false;
@@ -202,7 +192,8 @@ function hotquestion_scale_used($hotquestionid, $scaleid) {
  * @return boolean True if the scale is used by any hotquestion
  */
 function hotquestion_scale_used_anywhere($scaleid) {
-    if ($scaleid and record_exists('hotquestion', 'grade', -$scaleid)) {
+    global $DB;
+    if ($scaleid and $DB->record_exists('hotquestion', array('grade'=>-$scaleid))) {
         return true;
     } else {
         return false;
@@ -210,33 +201,44 @@ function hotquestion_scale_used_anywhere($scaleid) {
 }
 
 
-/**
- * Execute post-install custom actions for the module
- * This function was added in 1.9
- *
- * @return boolean true if success, false on error
- */
-function hotquestion_install() {
-    return true;
+//return whether the user has voted on question
+function has_voted($question, $user = -1) {
+    global $USER;
+
+    if ($user == -1)
+        $user = $USER->id;
+
+    return record_exists('hotquestion_votes', 'question', $question, 'voter', $user);
 }
 
-
 /**
- * Execute post-uninstall custom actions for the module
- * This function was added in 1.9
+ * Indicates API features that the hotquestion supports.
  *
- * @return boolean true if success, false on error
+ * @uses FEATURE_GROUPS
+ * @uses FEATURE_GROUPINGS
+ * @uses FEATURE_GROUPMEMBERSONLY
+ * @uses FEATURE_MOD_INTRO
+ * @uses FEATURE_COMPLETION_TRACKS_VIEWS
+ * @uses FEATURE_COMPLETION_HAS_RULES
+ * @uses FEATURE_GRADE_HAS_GRADE
+ * @uses FEATURE_GRADE_OUTCOMES
+ * @param string $feature
+ * @return mixed True if yes (some features may use other values)
  */
-function hotquestion_uninstall() {
-    return true;
+function hotquestion_supports($feature) {
+    switch($feature) {
+        case FEATURE_GROUPS:                  return true;
+        case FEATURE_GROUPINGS:               return true;
+        case FEATURE_GROUPMEMBERSONLY:        return true;
+        case FEATURE_MOD_INTRO:               return true;
+        case FEATURE_COMPLETION_TRACKS_VIEWS: return true;
+        case FEATURE_COMPLETION_HAS_RULES:    return true;
+        case FEATURE_GRADE_HAS_GRADE:         return true;
+        case FEATURE_GRADE_OUTCOMES:          return true;
+        case FEATURE_RATE:                    return true;
+        case FEATURE_BACKUP_MOODLE2:          return true;
+
+        default: return null;
+    }
 }
 
-
-//////////////////////////////////////////////////////////////////////////////////////
-/// Any other hotquestion functions go here.  Each of them must have a name that
-/// starts with hotquestion_
-/// Remember (see note in first lines) that, if this section grows, it's HIGHLY
-/// recommended to move all funcions below to a new "localib.php" file.
-
-
-?>

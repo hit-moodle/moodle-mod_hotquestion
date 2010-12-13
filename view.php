@@ -1,63 +1,64 @@
-<?php  // $Id: view.php,v 1.6.2.3 2009/04/17 22:06:25 skodak Exp $
+<?php
 
 /**
  * This page prints a particular instance of hotquestion
  *
  * @author  Your Name <your@email.address>
- * @version $Id: view.php,v 1.6.2.3 2009/04/17 22:06:25 skodak Exp $
  * @package mod/hotquestion
  */
 
 require_once("../../config.php");
+require_once($CFG->libdir . '/completionlib.php');
 require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
+require_once('lib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID, or
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 
 if ($id) {
     if (! $cm = get_coursemodule_from_id('hotquestion', $id)) {
-        error('Course Module ID was incorrect');
+        print_error('invalidcoursemodule');
     }
 
-    if (! $course = get_record('course', 'id', $cm->course)) {
-        error('Course is misconfigured');
+    if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
+        print_error('coursemisconf');
     }
 
-    if (! $hotquestion = get_record('hotquestion', 'id', $cm->instance)) {
-        error('Course module is incorrect');
+    if (! $hotquestion = $DB->get_record('hotquestion', array('id' => $cm->instance))) {
+        print_error('invalidhotquestionid', 'hotquestion');
     }
 
 } else if ($h) {
-    if (! $hotquestion = get_record('hotquestion', 'id', $h)) {
-        error('Course module is incorrect');
+    if (! $hotquestion = $DB->get_record('hotquestion', array('id'=>$h))) {
+        print_error('invalidhotquestionid', 'hotquestion');
     }
-    if (! $course = get_record('course', 'id', $hotquestion->course)) {
-        error('Course is misconfigured');
+    if (! $course = $DB->get_record('course', array('id'=>$hotquestion->course))) {
+        print_error('coursemisconf');
     }
     if (! $cm = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id)) {
-        error('Course Module ID was incorrect');
+        print_error('invalidcoursemodule');
     }
 
 } else {
-    error('You must specify a course_module ID or an instance ID');
+    print_error('invalidcoursemodule');
 }
+require_course_login($course, false, $cm);
 
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
+$PAGE->set_context($context);
+$PAGE->set_cm($cm);
+$params = array();
+$params['id'] = $cm->instance;
+$PAGE->set_url('/mod/hotquestion/view.php', $params);
+$PAGE->set_title(format_string($hotquestion->name));
+$PAGE->add_body_class('hotquestion');
+$PAGE->set_heading(format_string($course->fullname));
+
 require_capability('mod/hotquestion:view', $context);
 
 /// Print the page header
 $strhotquestions = get_string('modulenameplural', 'hotquestion');
 $strhotquestion  = get_string('modulename', 'hotquestion');
-
-$navlinks = array();
-$navlinks[] = array('name' => $strhotquestions, 'link' => "index.php?id=$course->id", 'type' => 'activity');
-$navlinks[] = array('name' => format_string($hotquestion->name), 'link' => '', 'type' => 'activityinstance');
-
-$navigation = build_navigation($navlinks);
-
-print_header_simple(format_string($hotquestion->name), '', $navigation, '', '', true,
-              update_module_button($cm->id, $course->id, $strhotquestion), navmenu($course, $cm));
-
 
 if(has_capability('mod/hotquestion:ask', $context)){
     $mform = new hotquestion_form($hotquestion->anonymouspost);
@@ -71,20 +72,20 @@ if(has_capability('mod/hotquestion:ask', $context)){
         if (isset($fromform->anonymous) && $hotquestion->anonymouspost)
             $data->anonymous = $fromform->anonymous;
 
-        if (!empty($data->content)){
-            if(!($questionid = insert_record('hotquestion_questions', $data))){
-                error("error in inserting questions!");
-            }
+        if (!empty($data->content)) {
+            $DB->insert_record('hotquestion_questions', $data);
         } else {
             redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
         }
 
-        add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
+        //add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
 
         // Redirect to show questions. So that the page can be refreshed
         redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
     }
 }
+
+echo $OUTPUT->header();
 
 //handle the new votes
 $action  = optional_param('action', '', PARAM_ACTION);  // Vote or unvote
@@ -95,7 +96,7 @@ if (!empty($action)) {
     case 'unvote':
         require_capability('mod/hotquestion:vote', $context);
         $q  = required_param('q', PARAM_INT);  // question ID to vote
-        $question = get_record('hotquestion_questions', 'id', $q);
+        $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
         if ($question && $USER->id != $question->userid) {
             add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
 
@@ -104,7 +105,7 @@ if (!empty($action)) {
                     $votes->question = $q;
                     $votes->voter = $USER->id;
 
-                    if(!insert_record('hotquestion_votes', $votes)){
+                    if(!$DB->insert_record('hotquestion_votes', $votes)){
                         error("error in inserting the votes!");
                     }
                 }
@@ -118,14 +119,14 @@ if (!empty($action)) {
 
     case 'newround':
         // Close the latest round
-        $old = array_pop(get_records('hotquestion_rounds', 'hotquestion', $hotquestion->id, 'id DESC', '*', '', 1));
+        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id DESC', '*', 0, 1));
         $old->endtime = time();
-        update_record('hotquestion_rounds', $old);
+        $DB->update_record('hotquestion_rounds', $old);
         // Open a new round
         $new->hotquestion = $hotquestion->id;
         $new->starttime = time();
         $new->endtime = 0;
-        insert_record('hotquestion_rounds', $new);
+        $DB->insert_record('hotquestion_rounds', $new);
     }
 }
 
@@ -136,7 +137,7 @@ if (!empty($action)) {
 if (trim($hotquestion->intro)) {
    $formatoptions->noclean = true;
    $formatoptions->para    = false;
-   print_box(format_text($hotquestion->intro, FORMAT_MOODLE, $formatoptions), 'generalbox', 'intro');
+   $OUTPUT->box(format_text($hotquestion->intro, FORMAT_MOODLE, $formatoptions), 'generalbox', 'intro');
 }
 
 
@@ -145,11 +146,10 @@ if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
 }
 
-
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
 // Look for round
-$rounds = get_records('hotquestion_rounds', 'hotquestion', $hotquestion->id, 'id ASC');
+$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id ASC');
 $roundid  = optional_param('round', -1, PARAM_INT);
 
 $ids = array_keys($rounds);
@@ -172,31 +172,30 @@ if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
 }
 
 // Print round toolbar
-echo '<div id="toolbar">';
-if (!empty($prev_round))
+echo $OUTPUT->container_start("toolbar");
+if (!empty($prev_round)) {
     echo '<a href="view.php?id='.$cm->id.'&round='.$prev_round->id.'">('.get_string('previous').')</a> ';
-print_string('round', 'hotquestion', $roundnum);
-/*echo ': ';
-echo userdate($current_round->starttime).' - ';
-if ($current_round->endtime) {
-    echo userdate($current_round->endtime);
-} else {
-    echo '???';
-}*/
-if (!empty($next_round))
-    echo ' <a href="view.php?id='.$cm->id.'&round='.$next_round->id.'">('.get_string('next').')</a>';
+    echo get_string('round', 'hotquestion', $roundnum);
+}
+
+if (!empty($next_round)) {
+    $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$next_round->id));
+    echo html_writer::link($url, '(' . get_string('next') . ')' );
+}
+
 if (has_capability('mod/hotquestion:manage', $context)) {
     $options = array();
     $options['id'] = $cm->id;
     $options['action'] = 'newround';
-    print_single_button('view.php', $options, get_string('newround', 'hotquestion'), 'get', '_self', false, '', false, get_string('newroundconfirm', 'hotquestion'));
+    $url = new moodle_url('/mod/hotquestion/view.php', $options);
+    echo $OUTPUT->single_button($url, get_string('newround', 'hotquestion'), 'get');
 }
-echo '</div>';
+echo $OUTPUT->container_end();
 
 // Questions list
 if ($current_round->endtime == 0)
     $current_round->endtime = 0xFFFFFFFF;  //Hack
-$questions = get_records_sql("SELECT q.*, count(v.voter) as count
+    $questions = $DB->get_recordset_sql("SELECT q.*, count(v.voter) as count
                               FROM {$CFG->prefix}hotquestion_questions q
                               LEFT JOIN {$CFG->prefix}hotquestion_votes v
                               ON v.question = q.id
@@ -206,8 +205,9 @@ $questions = get_records_sql("SELECT q.*, count(v.voter) as count
                               GROUP BY q.id
                               ORDER BY count DESC, q.time DESC");
 
-if($questions){
+if ($questions) {
 
+    $table = new html_table();
     $table->cellpadding = 10;
     $table->class = 'generaltable';
     $table->align = array ('left', 'center');
@@ -220,8 +220,8 @@ if($questions){
 
         $formatoptions->para  = false;
         $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
-        
-        $user = get_record('user', 'id', $question->userid);
+
+        $user = $DB->get_record('user', array('id'=>$question->userid));
         if ($question->anonymous) {
             $a->user = get_string('anonymous', 'hotquestion');
         } else {
@@ -231,7 +231,7 @@ if($questions){
         $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
 
         $line[] = $content.$info;
-        
+
         $heat = $question->count;
         if (has_capability('mod/hotquestion:vote', $context) && $question->userid != $USER->id){
             if (!has_voted($question->id)){
@@ -248,24 +248,11 @@ if($questions){
         $table->data[] = $line;
     }//for
 
-    print_table($table);
+    echo html_writer::table($table);
 
 }else{
-    print_simple_box(get_string('noquestions', 'hotquestion'), 'center', '70%');
+    $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
 }
-
 
 /// Finish the page
-print_footer($course);
-
-//return whether the user has voted on question
-function has_voted($question, $user = -1) {
-    global $USER;
-
-    if ($user == -1)
-        $user = $USER->id;
-
-    return record_exists('hotquestion_votes', 'question', $question, 'voter', $user);
-}
-
-?>
+echo $OUTPUT->footer($course);

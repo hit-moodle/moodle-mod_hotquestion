@@ -1,4 +1,4 @@
-<?php //$Id: mod_form.php,v 1.2.2.3 2009/03/19 12:23:11 mudrd8mz Exp $
+<?php
 
 /**
  * This file defines the main hotquestion configuration form
@@ -33,30 +33,29 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         global $COURSE;
         $mform =& $this->_form;
 
-//-------------------------------------------------------------------------------
-    /// Adding the "general" fieldset, where all the common settings are showed
+        //-------------------------------------------------------------------------------
+        /// Adding the "general" fieldset, where all the common settings are showed
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-    /// Adding the standard "name" field
+        /// Adding the standard "name" field
         $mform->addElement('text', 'name', get_string('hotquestionname', 'hotquestion'), array('size'=>'64'));
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', null, 'required', null, 'client');
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
 
-    /// Adding the required "intro" field to hold the description of the instance
-        $mform->addElement('htmleditor', 'intro', get_string('hotquestionintro', 'hotquestion'));
-        $mform->setType('intro', PARAM_RAW);
-        $mform->addRule('intro', get_string('required'), 'required', null, 'client');
-        $mform->setHelpButton('intro', array('writing', 'richtext'), false, 'editorhelpbutton');
+        /// Adding the required "intro" field to hold the description of the instance
+        //$mform->addElement('editor', 'intro', get_string('hotquestionintro', 'hotquestion'));
+        //$mform->setType('intro', PARAM_RAW);
+        //$mform->addRule('intro', get_string('required'), 'required', null, 'client');
+        $this->add_intro_editor(true, get_string('hotquestionintro', 'hotquestion'));
+        //$mform->setHelpButton('intro', array('writing', 'richtext'), false, 'editorhelpbutton');
 
-    /// Adding "introformat" field
-        $mform->addElement('format', 'introformat', get_string('format'));
 
-    /// Adding 'anonymouspost' field
+        /// Adding 'anonymouspost' field
         $mform->addElement('selectyesno', 'anonymouspost', get_string('allowanonymouspost', 'hotquestion'));
         $mform->setDefault('anonymouspost', '1');
 
-//-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
         // add standard elements, common to all modules
         $features->groups = false;
         $features->groupings = false;
@@ -65,7 +64,7 @@ class mod_hotquestion_mod_form extends moodleform_mod {
         $features->gradecat = false;
         $features->idnumber = false;
         $this->standard_coursemodule_elements($features);
-//-------------------------------------------------------------------------------
+        //-------------------------------------------------------------------------------
         // add standard buttons, common to all modules
         $this->add_action_buttons();
 
@@ -74,21 +73,20 @@ class mod_hotquestion_mod_form extends moodleform_mod {
 
 //Form for submitting question
 class hotquestion_form extends moodleform {
-    var $anonymouspost;
 
     function hotquestion_form($anonymouspost) {
         $this->anonymouspost = $anonymouspost;
         parent::moodleform();
     }
-	
-	function definition() {
-		global $CFG, $cm;
 
-		$mform =& $this->_form;
-		$mform->addElement('textarea', 'question', get_string("inputquestion", "hotquestion"), 'wrap="virtual" rows="3" cols="50"');
+    function definition() {
+        global $CFG, $cm;
+
+        $mform =& $this->_form;
+        $mform->addElement('textarea', 'question', get_string("inputquestion", "hotquestion"), 'wrap="virtual" rows="3" cols="50"');
         $mform->setType('question', PARAM_TEXT);
-		$mform->addElement('hidden', 'id', $cm->id);
-		
+        $mform->addElement('hidden', 'id', $cm->id);
+
         $submitgroup = array();
         $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('post'));
         if ($this->anonymouspost) {
@@ -98,4 +96,3 @@ class hotquestion_form extends moodleform {
 
     }
 }
-?>

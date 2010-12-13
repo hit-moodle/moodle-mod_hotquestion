@@ -1,12 +1,12 @@
 <?php
 
-$mod_hotquestion_capabilities = array(
+$capabilities = array(
 
     'mod/hotquestion:view' => array(
 
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
+        'archetypes' => array(
             'guest' => CAP_ALLOW,
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
@@ -18,7 +18,7 @@ $mod_hotquestion_capabilities = array(
 
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
+        'archetypes' => array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
         )
@@ -28,7 +28,7 @@ $mod_hotquestion_capabilities = array(
 
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
+        'archetypes' => array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
@@ -39,10 +39,8 @@ $mod_hotquestion_capabilities = array(
 
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'legacy' => array(
+        'archetypes' => array(
             'editingteacher' => CAP_ALLOW,
         )
     )
 );
-
-?>
