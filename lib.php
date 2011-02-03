@@ -203,12 +203,12 @@ function hotquestion_scale_used_anywhere($scaleid) {
 
 //return whether the user has voted on question
 function has_voted($question, $user = -1) {
-    global $USER;
+    global $USER, $DB;
 
     if ($user == -1)
         $user = $USER->id;
 
-    return record_exists('hotquestion_votes', 'question', $question, 'voter', $user);
+    return $DB->record_exists('hotquestion_votes', array('question'=>$question, 'voter'=>$user));
 }
 
 /**
