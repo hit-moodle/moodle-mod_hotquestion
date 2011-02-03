@@ -135,9 +135,9 @@ if (!empty($action)) {
 
 // Print hotquestion description
 if (trim($hotquestion->intro)) {
-   $formatoptions->noclean = true;
-   $formatoptions->para    = false;
-   $OUTPUT->box(format_text($hotquestion->intro, FORMAT_MOODLE, $formatoptions), 'generalbox', 'intro');
+    echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+    echo format_module_intro('hotquestion', $hotquestion, $cm->id);
+    echo $OUTPUT->box_end();
 }
 
 
