@@ -61,7 +61,7 @@ $strhotquestions = get_string('modulenameplural', 'hotquestion');
 $strhotquestion  = get_string('modulename', 'hotquestion');
 
 if(has_capability('mod/hotquestion:ask', $context)){
-    $mform = new hotquestion_form($hotquestion->anonymouspost);
+    $mform = new hotquestion_form(null, $hotquestion->anonymouspost);
 
     if ($fromform=$mform->get_data()){
 
@@ -173,8 +173,8 @@ if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
 // Print round toolbar
 echo $OUTPUT->container_start("toolbar");
 if (!empty($prev_round)) {
-    echo '<a href="view.php?id='.$cm->id.'&round='.$prev_round->id.'">('.get_string('previous').')</a> ';
-    echo get_string('round', 'hotquestion', $roundnum);
+    $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$prev_round->id));
+    echo html_writer::link($url, '(' . get_string('previous') . ')' );
 }
 
 if (!empty($next_round)) {
