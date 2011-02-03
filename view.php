@@ -78,7 +78,7 @@ if(has_capability('mod/hotquestion:ask', $context)){
             redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
         }
 
-        //add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $hotquestion->id, $data->content);
+        add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $data->content, $cm->id);
 
         // Redirect to show questions. So that the page can be refreshed
         redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
@@ -98,7 +98,7 @@ if (!empty($action)) {
         $q  = required_param('q', PARAM_INT);  // question ID to vote
         $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
         if ($question && $USER->id != $question->userid) {
-            add_to_log($course->id, 'hotquestion', 'vote', "view.php?id=$cm->id", $hotquestion->id);
+            add_to_log($course->id, 'hotquestion', 'update vote', "view.php?id=$cm->id", $q, $cm->id);
 
             if ($action == 'vote') {
                 if (!has_voted($q)){
@@ -126,7 +126,8 @@ if (!empty($action)) {
         $new->hotquestion = $hotquestion->id;
         $new->starttime = time();
         $new->endtime = 0;
-        $DB->insert_record('hotquestion_rounds', $new);
+        $rid = $DB->insert_record('hotquestion_rounds', $new);
+        add_to_log($course->id, 'hotquestion', 'add round', "view.php?id=$cm->id&round=$rid", $rid, $cm->id);
     }
 }
 
@@ -145,8 +146,6 @@ if (trim($hotquestion->intro)) {
 if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
 }
-
-add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id", "$hotquestion->id");
 
 // Look for round
 $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id ASC');
@@ -253,6 +252,8 @@ if ($questions) {
 }else{
     $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
 }
+
+add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
 /// Finish the page
 echo $OUTPUT->footer($course);
