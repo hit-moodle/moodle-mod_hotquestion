@@ -194,7 +194,8 @@ echo $OUTPUT->container_end();
 // Questions list
 if ($current_round->endtime == 0)
     $current_round->endtime = 0xFFFFFFFF;  //Hack
-    $questions = $DB->get_recordset_sql("SELECT q.*, count(v.voter) as count
+
+$questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
                               FROM {$CFG->prefix}hotquestion_questions q
                               LEFT JOIN {$CFG->prefix}hotquestion_votes v
                               ON v.question = q.id
@@ -202,7 +203,7 @@ if ($current_round->endtime == 0)
                                     AND q.time >= {$current_round->starttime}
                                     AND q.time <= {$current_round->endtime}
                               GROUP BY q.id
-                              ORDER BY count DESC, q.time DESC");
+                              ORDER BY votecount DESC, q.time DESC");
 
 if ($questions) {
 
@@ -231,7 +232,7 @@ if ($questions) {
 
         $line[] = $content.$info;
 
-        $heat = $question->count;
+        $heat = $question->votecount;
         if (has_capability('mod/hotquestion:vote', $context) && $question->userid != $USER->id){
             if (!has_voted($question->id)){
                 $heat .= '&nbsp;<a href="view.php?id='.$cm->id.'&action=vote&q='.$question->id.'"><img src="'.$OUTPUT->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
@@ -250,7 +251,7 @@ if ($questions) {
     echo html_writer::table($table);
 
 }else{
-    $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
+    echo $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
 }
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
