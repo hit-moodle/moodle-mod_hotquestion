@@ -79,7 +79,7 @@ function hotquestion_update_instance($hotquestion, $mform) {
 function hotquestion_delete_instance($id) {
     global $DB;
 
-    if (! $hotquestion = $DB->get_record('hotquestion', array('id', $id))) {
+    if (! $hotquestion = $DB->get_record('hotquestion', array('id' => $id))) {
         return false;
     }
 
