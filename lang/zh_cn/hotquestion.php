@@ -49,5 +49,6 @@ $string['pluginadministration'] = '热点提问管理';
 $string['pluginname'] = '热点提问';
 $string['question'] = '问题';
 $string['questionsubmitted'] = '您的问题已经成功提交。';
+$string['resethotquestion'] = '删除所有问题和投票';
 $string['round'] = '第{$a}轮';
 $string['vote'] = '顶';

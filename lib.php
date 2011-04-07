@@ -61,15 +61,6 @@ function hotquestion_add_instance($hotquestion) {
 
     $id = $DB->insert_record('hotquestion', $hotquestion);
 
-    // Create the first round
-    $round->starttime = time();
-    $round->endtime = 0;
-    $round->hotquestion = $id;
-
-    if ($DB->insert_record('hotquestion_rounds', $round)) {
-        return $id;
-    }
-
     return $id;
 }
 
@@ -107,22 +98,38 @@ function hotquestion_delete_instance($id) {
         return false;
     }
 
-    $questions = $DB->get_records('hotquestion_questions', array('hotquestion'=>$hotquestion->id));
+    if (! reset_instance($hotquestion->id)) {
+        return false;
+    }
+
+    if (! $DB->delete_records('hotquestion', array('id' => $hotquestion->id))) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Clear all questions and votes
+ * 
+ * @param int $hotquestionid
+ * @return boolean Success/Failure
+ */
+function reset_instance($hotquestionid) {
+    global $DB;
+
+    $questions = $DB->get_records('hotquestion_questions', array('hotquestion' => $hotquestionid));
     foreach ($questions as $question) {
-        if (! $DB->delete_records('hotquestion_votes', array('question'=>$question->id))) {
+        if (! $DB->delete_records('hotquestion_votes', array('question' => $question->id))) {
             return false;
         }
     }
 
-    if (! $DB->delete_records('hotquestion_questions', array('hotquestion'=>$hotquestion->id))) {
+    if (! $DB->delete_records('hotquestion_questions', array('hotquestion' => $hotquestionid))) {
         return false;
     }
 
-    if (! $DB->delete_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id))) {
-        return false;
-    }
-
-    if (! $DB->delete_records('hotquestion', array('id'=>$hotquestion->id))) {
+    if (! $DB->delete_records('hotquestion_rounds', array('hotquestion' => $hotquestionid))) {
         return false;
     }
 
@@ -203,6 +210,41 @@ function hotquestion_get_participants($hotquestionid) {
  */
 function hotquestion_uninstall() {
     return true;
+}
+
+/**
+ * This function is used by the reset_course_userdata function in moodlelib.
+ * This function will remove all posts from the specified forum
+ * and clean up any related data.
+ *
+ * @global object
+ * @param $data the data submitted from the reset course.
+ * @return array status array
+ */
+function hotquestion_reset_userdata($data) {
+    global $DB;
+
+    $status = array();
+    if (!empty($data->reset_hotquestion)) {
+        $instances = $DB->get_records('hotquestion', array('course' => $data->courseid));
+        foreach ($instances as $instance) {
+            if (reset_instance($instance->id)) {
+                $status[] = array('component'=>get_string('modulenameplural', 'hotquestion'), 'item'=>get_string('resethotquestion','hotquestion').': '.$instance->name, 'error'=>false);
+            }
+        }
+    }
+
+    return $status;
+}
+
+/**
+ * Called by course/reset.php
+ *
+ * @param $mform form passed by reference
+ */
+function hotquestion_reset_course_form_definition(&$mform) {
+    $mform->addElement('header', 'hotquestionheader', get_string('modulenameplural', 'hotquestion'));
+    $mform->addElement('checkbox', 'reset_hotquestion', get_string('resethotquestion','hotquestion'));
 }
 
 /**

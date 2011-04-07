@@ -156,8 +156,17 @@ if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
 }
 
-// Look for round
-$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id ASC');
+// Look for rounds
+$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');
+if (empty($rounds)) {
+    // Create the first round
+    $round->starttime = time();
+    $round->endtime = 0;
+    $round->hotquestion = $hotquestion->id;
+    $round->id = $DB->insert_record('hotquestion_rounds', $round);
+    $rounds[] = $round;
+}
+
 $roundid  = optional_param('round', -1, PARAM_INT);
 
 $ids = array_keys($rounds);
