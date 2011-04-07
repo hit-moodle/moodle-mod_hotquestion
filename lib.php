@@ -183,58 +183,16 @@ function hotquestion_cron () {
 
 /**
  * Must return an array of users who are participants for a given instance
- * of newmodule. Must include every user involved in the instance,
+ * of hotquestion. Must include every user involved in the instance,
  * independient of his role (student, teacher, admin...). The returned
  * objects must contain at least id property.
  * See other modules as example.
  *
- * @param int $newmoduleid ID of an instance of this module
+ * @param int $hotquestionid ID of an instance of this module
  * @return boolean|array false if no participants, array of objects otherwise
  */
 function hotquestion_get_participants($hotquestionid) {
     return false;
-}
-
-/**
- * This function returns if a scale is being used by one hotquestion
- * if it has support for grading and scales. Commented code should be
- * modified if necessary. See forum, glossary or journal modules
- * as reference.
- *
- * @param int $hotquestionid ID of an instance of this module
- * @return mixed
- * @todo Finish documenting this function
- */
-function hotquestion_scale_used($hotquestionid, $scaleid) {
-    global $DB;
-
-    $return = false;
-
-    //$rec = get_record("hotquestion","id","$hotquestionid","scale","-$scaleid");
-    //
-    //if (!empty($rec) && !empty($scaleid)) {
-    //    $return = true;
-    //}
-
-    return $return;
-}
-
-/**
- * Checks if scale is being used by any instance of hotquestion.
- * This function was added in 1.9
- *
- * This is used to find out if scale used anywhere
- * @param $scaleid int
- * @return boolean True if the scale is used by any hotquestion
- */
-function hotquestion_scale_used_anywhere($scaleid) {
-    global $DB;
-
-    if ($scaleid and $DB->record_exists('hotquestion', array('grade'=>-$scaleid))) {
-        return true;
-    } else {
-        return false;
-    }
 }
 
 /**
