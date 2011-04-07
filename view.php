@@ -1,65 +1,73 @@
 <?php
 
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+
 /**
- * This page prints a particular instance of hotquestion
+ * Prints a particular instance of hotquestion
  *
- * @author  Your Name <your@email.address>
- * @package mod/hotquestion
+ * You can have a rather longer description of the file as well,
+ * if you like, and it can span multiple lines.
+ *
+ * @package   mod_hotquestion
+ * @copyright 2011 Sun Zhigang
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once("../../config.php");
-require_once($CFG->libdir . '/completionlib.php');
+
+require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
+require_once(dirname(__FILE__).'/lib.php');
+require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
-require_once('lib.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID, or
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 
 if ($id) {
-    if (! $cm = get_coursemodule_from_id('hotquestion', $id)) {
-        print_error('invalidcoursemodule');
-    }
-
-    if (! $course = $DB->get_record("course", array("id" => $cm->course))) {
-        print_error('coursemisconf');
-    }
-
-    if (! $hotquestion = $DB->get_record('hotquestion', array('id' => $cm->instance))) {
-        print_error('invalidhotquestionid', 'hotquestion');
-    }
-
-} else if ($h) {
-    if (! $hotquestion = $DB->get_record('hotquestion', array('id'=>$h))) {
-        print_error('invalidhotquestionid', 'hotquestion');
-    }
-    if (! $course = $DB->get_record('course', array('id'=>$hotquestion->course))) {
-        print_error('coursemisconf');
-    }
-    if (! $cm = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id)) {
-        print_error('invalidcoursemodule');
-    }
-
+    $cm         = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $hotquestion  = $DB->get_record('hotquestion', array('id' => $cm->instance), '*', MUST_EXIST);
+} elseif ($h) {
+    $hotquestion  = $DB->get_record('hotquestion', array('id' => $h), '*', MUST_EXIST);
+    $course     = $DB->get_record('course', array('id' => $hotquestion->course), '*', MUST_EXIST);
+    $cm         = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id, false, MUST_EXIST);
 } else {
-    print_error('invalidcoursemodule');
+    error('You must specify a course_module ID or an instance ID');
 }
-require_course_login($course, false, $cm);
+
+require_login($course, true, $cm);
+
+add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquestion->name, $cm->id);
+
+/// Print the page header
+
+$PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
+$PAGE->set_title($hotquestion->name);
+$PAGE->set_heading($course->shortname);
+$PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
 
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 $PAGE->set_context($context);
 $PAGE->set_cm($cm);
-$params = array();
-$params['id'] = $cm->instance;
-$PAGE->set_url('/mod/hotquestion/view.php', $params);
-$PAGE->set_title(format_string($hotquestion->name));
 $PAGE->add_body_class('hotquestion');
-$PAGE->set_heading(format_string($course->fullname));
+//$PAGE->set_focuscontrol('some-html-id');
 
 require_capability('mod/hotquestion:view', $context);
 
-/// Print the page header
-$strhotquestions = get_string('modulenameplural', 'hotquestion');
-$strhotquestion  = get_string('modulename', 'hotquestion');
-
+// Post question
 if(has_capability('mod/hotquestion:ask', $context)){
     $mform = new hotquestion_form(null, $hotquestion->anonymouspost);
 
@@ -85,9 +93,10 @@ if(has_capability('mod/hotquestion:ask', $context)){
     }
 }
 
+// Output starts here
 echo $OUTPUT->header();
 
-//handle the new votes
+// Handle the new votes
 $action  = optional_param('action', '', PARAM_ACTION);  // Vote or unvote
 if (!empty($action)) {
     switch ($action) {
@@ -256,5 +265,5 @@ if ($questions) {
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
-/// Finish the page
-echo $OUTPUT->footer($course);
+// Finish the page
+echo $OUTPUT->footer();

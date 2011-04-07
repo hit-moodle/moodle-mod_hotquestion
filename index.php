@@ -1,21 +1,39 @@
-<?php // $Id: index.php,v 1.7.2.3 2009/08/31 22:00:00 mudrd8mz Exp $
+<?php
+
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
 
 /**
- * This page lists all the instances of hotquestion in a particular course
+ * This is a one-line short description of the file
  *
- * @author  Your Name <your@email.address>
- * @version $Id: index.php,v 1.7.2.3 2009/08/31 22:00:00 mudrd8mz Exp $
- * @package mod/hotquestion
+ * You can have a rather longer description of the file as well,
+ * if you like, and it can span multiple lines.
+ *
+ * @package   mod_hotquestion
+ * @copyright 2011 Sun Zhigang
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/// Replace hotquestion with the name of your module and remove this line
 
 require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 
 $id = required_param('id', PARAM_INT);   // course
 
-if (! $course = get_record('course', 'id', $id)) {
+if (! $course = $DB->get_record('course', array('id' => $id))) {
     error('Course ID is incorrect');
 }
 
@@ -23,26 +41,21 @@ require_course_login($course);
 
 add_to_log($course->id, 'hotquestion', 'view all', "index.php?id=$course->id", '');
 
-
-/// Get all required stringshotquestion
-
-$strhotquestions = get_string('modulenameplural', 'hotquestion');
-$strhotquestion  = get_string('modulename', 'hotquestion');
-
-
 /// Print the header
 
-$navlinks = array();
-$navlinks[] = array('name' => $strhotquestions, 'link' => '', 'type' => 'activity');
-$navigation = build_navigation($navlinks);
+$PAGE->set_url('/mod/hotquestion/view.php', array('id' => $id));
+$PAGE->set_title($course->fullname);
+$PAGE->set_heading($course->shortname);
 
-print_header_simple($strhotquestions, '', $navigation, '', '', true, '', navmenu($course));
+echo $OUTPUT->header();
 
 /// Get all the appropriate data
 
 if (! $hotquestions = get_all_instances_in_course('hotquestion', $course)) {
-    notice('There are no instances of hotquestion', "../../course/view.php?id=$course->id");
-    die;
+    echo $OUTPUT->heading(get_string('nohotquestion', 'hotquestion'), 2);
+    echo $OUTPUT->continue_button("view.php?id=$course->id");
+    echo $OUTPUT->footer();
+    die();
 }
 
 /// Print the list of instances (your module will probably extend this)
@@ -79,11 +92,9 @@ foreach ($hotquestions as $hotquestion) {
     }
 }
 
-print_heading($strhotquestions);
+echo $OUTPUT->heading(get_string('modulenameplural', 'hotquestion'), 2);
 print_table($table);
 
 /// Finish the page
 
-print_footer($course);
-
-?>
+echo $OUTPUT->footer();
