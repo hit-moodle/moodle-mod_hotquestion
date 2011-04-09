@@ -63,7 +63,6 @@ $capabilities = array(
     ),
 
     'mod/hotquestion:vote' => array(
-        'riskbitmask' => RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -84,7 +83,6 @@ $capabilities = array(
     ),
 
     'mod/hotquestion:manage' => array(
-        'riskbitmask' => RISK_XSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
