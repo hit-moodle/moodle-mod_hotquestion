@@ -203,16 +203,6 @@ function hotquestion_get_participants($hotquestionid) {
 }
 
 /**
- * Execute post-uninstall custom actions for the module
- * This function was added in 1.9
- *
- * @return boolean true if success, false on error
- */
-function hotquestion_uninstall() {
-    return true;
-}
-
-/**
  * This function is used by the reset_course_userdata function in moodlelib.
  * This function will remove all posts from the specified forum
  * and clean up any related data.
