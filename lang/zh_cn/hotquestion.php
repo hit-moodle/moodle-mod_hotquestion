@@ -52,3 +52,4 @@ $string['questionsubmitted'] = '您的问题已经成功提交。';
 $string['resethotquestion'] = '删除所有问题和投票';
 $string['round'] = '第{$a}轮';
 $string['vote'] = '顶';
+$string['connectionerror'] = '网络错误。请检查网络连接或联系站点管理员';

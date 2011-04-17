@@ -52,3 +52,4 @@ $string['questionsubmitted'] = 'Your question has been submitted successfully.';
 $string['resethotquestion'] = 'Delete all questions and votes';
 $string['round'] = 'Round {$a}';
 $string['vote'] = 'Vote';
+$string['connectionerror'] = 'Connection error. Please check your network or contact the web administrator';

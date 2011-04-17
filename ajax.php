@@ -17,7 +17,7 @@
 
 
 /**
- * Prints a particular instance of hotquestion
+ * Prints the questions table of hotquestion
  *
  * You can have a rather longer description of the file as well,
  * if you like, and it can span multiple lines.
@@ -52,19 +52,8 @@ require_login($course, true, $cm);
 
 add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquestion->name, $cm->id);
 
-/// Print the page header
-
-$PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
-$PAGE->set_title($hotquestion->name);
-$PAGE->set_heading($course->shortname);
-$PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
-$PAGE->requires->js('/mod/hotquestion/actions.js');
-
+$PAGE->set_url('/mod/hotquestion/ajax.php', array('id' => $cm->id));
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-$PAGE->set_context($context);
-$PAGE->set_cm($cm);
-$PAGE->add_body_class('hotquestion');
-//$PAGE->set_focuscontrol('some-html-id');
 
 require_capability('mod/hotquestion:view', $context);
 
@@ -84,18 +73,12 @@ if(has_capability('mod/hotquestion:ask', $context)){
         if (!empty($data->content)) {
             $DB->insert_record('hotquestion_questions', $data);
         } else {
-            redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+            redirect('ajax.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
         }
 
         add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $data->content, $cm->id);
-
-        // Redirect to show questions. So that the page can be refreshed
-        redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
     }
 }
-
-// Output starts here
-echo $OUTPUT->header();
 
 // Handle the new votes
 $action  = optional_param('action', '', PARAM_ACTION);  // Vote or unvote
@@ -140,9 +123,6 @@ if (!empty($action)) {
         add_to_log($course->id, 'hotquestion', 'add round', "view.php?id=$cm->id&round=$rid", $rid, $cm->id);
     }
 }
-
-/// Print the main part of the page
-
 
 // Print hotquestion description 
 if (trim($hotquestion->intro)) {
@@ -282,5 +262,3 @@ if ($questions) {
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
-// Finish the page
-echo $OUTPUT->footer();

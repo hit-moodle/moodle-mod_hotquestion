@@ -83,7 +83,7 @@ class hotquestion_form extends moodleform {
         $mform =& $this->_form;
         $mform->addElement('textarea', 'question', get_string("inputquestion", "hotquestion"), 'wrap="virtual" rows="3" cols="50"');
         $mform->setType('question', PARAM_TEXT);
-        $mform->addElement('hidden', 'id', $cm->id);
+        $mform->addElement('hidden', 'id', $cm->id, 'id="hotquestion_courseid"');
 
         $submitgroup = array();
         $submitgroup[] =& $mform->createElement('submit', 'submitbutton', get_string('post'));
