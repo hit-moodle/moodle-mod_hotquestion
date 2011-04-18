@@ -35,6 +35,7 @@ require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID, or
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
+$ajax = optional_param('async', 0, PARAM_INT); // asychronous form request
 
 if ($id) {
     $cm         = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
@@ -53,18 +54,19 @@ require_login($course, true, $cm);
 add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquestion->name, $cm->id);
 
 /// Print the page header
-
-$PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
-$PAGE->set_title($hotquestion->name);
-$PAGE->set_heading($course->shortname);
-$PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
-$PAGE->requires->js('/mod/hotquestion/actions.js');
-
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
-$PAGE->set_context($context);
-$PAGE->set_cm($cm);
-$PAGE->add_body_class('hotquestion');
-//$PAGE->set_focuscontrol('some-html-id');
+if (!$ajax){
+    $PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
+    $PAGE->set_title($hotquestion->name);
+    $PAGE->set_heading($course->shortname);
+    $PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
+    $PAGE->requires->js('/mod/hotquestion/actions.js');
+
+    $PAGE->set_context($context);
+    $PAGE->set_cm($cm);
+    $PAGE->add_body_class('hotquestion');
+    //$PAGE->set_focuscontrol('some-html-id');
+}
 
 require_capability('mod/hotquestion:view', $context);
 
@@ -90,12 +92,16 @@ if(has_capability('mod/hotquestion:ask', $context)){
         add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $data->content, $cm->id);
 
         // Redirect to show questions. So that the page can be refreshed
-        redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+        if (!$ajax){
+            redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+        }
     }
 }
 
 // Output starts here
-echo $OUTPUT->header();
+if (!$ajax){
+    echo $OUTPUT->header();
+}
 
 // Handle the new votes
 $action  = optional_param('action', '', PARAM_ACTION);  // Vote or unvote
@@ -151,6 +157,10 @@ if (trim($hotquestion->intro)) {
     echo $OUTPUT->box_end();
 }
 
+// Refresh button
+echo $OUTPUT->container_start("refreshbar");
+echo html_writer::link('view.php?id='.$cm->id, get_string('refresh', 'hotquestion'), array('id' => 'refresh_button'));
+echo $OUTPUT->container_end();
 
 // Ask form
 if(has_capability('mod/hotquestion:ask', $context)){
@@ -283,4 +293,6 @@ if ($questions) {
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
 // Finish the page
-echo $OUTPUT->footer();
+if (!$ajax){
+    echo $OUTPUT->footer();
+}

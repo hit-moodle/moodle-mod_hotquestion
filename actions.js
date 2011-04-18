@@ -33,10 +33,11 @@ YUI().use('io-base', 'node', function(Y){
     var courseID = Y.one('#hotquestion_courseid');
     var voteButton = Y.one('.hotquestion_vote');
     var contentdiv = Y.one('.region-content');
+    var refreshButton = Y.one('#refresh_button');
 
     var courseid = courseID.get('value');
-    var sUrl = 'ajax.php';
-    var isvote = false;
+    var sUrl = 'view.php';
+    var refresh = false;
 
     function reBind(){
         submitButton = Y.one('#id_submitbutton');
@@ -44,13 +45,18 @@ YUI().use('io-base', 'node', function(Y){
         courseID = Y.one('#hotquestion_courseid');
         voteButton = Y.one('.hotquestion_vote');
         contentdiv = Y.one('.region-content');
+        refreshButton = Y.one('#refresh_button');
 
         if(submitButton){
             submitButton.on('click', submitQuestion);
         }
 
         if(voteButton){
-            voteButton.on('click', voteAction);
+            voteButton.on('click', linkAction);
+        }
+
+        if(refreshButton){
+            refreshButton.on('click', linkAction);
         }
     }
 
@@ -61,7 +67,7 @@ YUI().use('io-base', 'node', function(Y){
         reBind();
         questionText.set("innerHTML", '');
         
-        if(!isvote){
+        if(!refresh){
             showPageMessage(0);
         }
     }
@@ -89,9 +95,14 @@ YUI().use('io-base', 'node', function(Y){
         message.setStyle('display', '');
     }
 
+    function addAjax(data){
+        data += "&async=1";
+        return data;
+    }
+
     var submitQuestion = function(e){
         e.preventDefault();
-        isvote = false;
+        refresh = false;
         
         // To avoid multiple clicks
         submitButton.set('disabled', 'disabled');
@@ -111,6 +122,8 @@ YUI().use('io-base', 'node', function(Y){
             data += "&anonymous=1";
         }
 
+        data = addAjax(data);
+
         if(question == ''){
             submitButton.removeAttribute('disabled');
             showPageMessage(1);
@@ -123,11 +136,12 @@ YUI().use('io-base', 'node', function(Y){
         }
     }
 
-    var voteAction = function(e){
+    var linkAction = function(e){
         e.preventDefault();
-        isvote = true;
+        refresh = true;
 
         var data = this.get('href').split('?',2)[1];
+        data = addAjax(data);
         var cfg = {
             method : "GET",
             data : data
@@ -141,7 +155,10 @@ YUI().use('io-base', 'node', function(Y){
     }
 
     if(voteButton){
-        voteButton.on('click', voteAction);
+        voteButton.on('click', linkAction);
     }
 
+    if(refreshButton){
+        refreshButton.on('click', linkAction);
+    }
 });
