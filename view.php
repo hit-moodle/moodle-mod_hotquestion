@@ -164,11 +164,10 @@ if(has_capability('mod/hotquestion:ask', $context)){
 }
 
 // Short messages for users. Hiden by default.
-echo html_writer::start_tag('div', array('id' => 'page_message'));
-echo html_writer::tag('span', get_string('questionsubmitted', 'hotquestion'), array('style' => 'display:none;', 'class' => 'successmsg'));
-echo html_writer::tag('span', get_string('invalidquestion', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
-echo html_writer::tag('span', get_string('connectionerror', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
-echo html_writer::end_tag('div');
+$messages = html_writer::tag('span', get_string('questionsubmitted', 'hotquestion'), array('style' => 'display:none;', 'class' => 'successmsg'));
+$messages .= html_writer::tag('span', get_string('invalidquestion', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
+$messages .= html_writer::tag('span', get_string('connectionerror', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
+echo $OUTPUT->container($messages, null, 'page_message');
 
 // Look for rounds
 $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');
