@@ -31,9 +31,9 @@ YUI().use('io-base', 'node', function(Y){
     var submitButton = Y.one('#id_submitbutton');
     var questionText = Y.one('#id_question');
     var courseID = Y.one('#hotquestion_courseid');
-    var voteButton = Y.one('.hotquestion_vote');
+    var voteButton = Y.all('.hotquestion_vote');
     var contentdiv = Y.one('.region-content');
-    var refreshButton = Y.one('#refresh_button');
+    var toolbar = Y.all('.toolbutton');
 
     var courseid = courseID.get('value');
     var sUrl = 'view.php';
@@ -43,9 +43,9 @@ YUI().use('io-base', 'node', function(Y){
         submitButton = Y.one('#id_submitbutton');
         questionText = Y.one('#id_question');
         courseID = Y.one('#hotquestion_courseid');
-        voteButton = Y.one('.hotquestion_vote');
+        voteButton = Y.all('.hotquestion_vote');
         contentdiv = Y.one('.region-content');
-        refreshButton = Y.one('#refresh_button');
+        toolbar = Y.all('.toolbutton');
 
         if(submitButton){
             submitButton.on('click', submitQuestion);
@@ -55,8 +55,8 @@ YUI().use('io-base', 'node', function(Y){
             voteButton.on('click', linkAction);
         }
 
-        if(refreshButton){
-            refreshButton.on('click', linkAction);
+        if(toolbar){
+            toolbar.on('click', linkAction);
         }
     }
 
@@ -140,7 +140,7 @@ YUI().use('io-base', 'node', function(Y){
         e.preventDefault();
         refresh = true;
 
-        var data = this.get('href').split('?',2)[1];
+        var data = e.currentTarget.get('href').split('?',2)[1];
         data = addAjax(data);
         var cfg = {
             method : "GET",
@@ -158,7 +158,7 @@ YUI().use('io-base', 'node', function(Y){
         voteButton.on('click', linkAction);
     }
 
-    if(refreshButton){
-        refreshButton.on('click', linkAction);
+    if(toolbar){
+        toolbar.on('click', linkAction);
     }
 });

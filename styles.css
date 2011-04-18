@@ -1,0 +1,37 @@
+.mod-hotquestion .author {
+    color: grey;
+    font-style: italic;
+    font-size: 90%;
+}
+
+#page_message{
+    margin-top: -20px;
+    padding-left: 20px;
+}
+
+.errormsg{
+    color: red;
+}
+
+.successmsg{
+    color: green;
+}
+
+.toolbar {
+    text-align: right;
+    padding: 5px;
+}
+
+ul#toolbar{
+    display: inline;
+    list-style: none;
+}
+
+#toolbar li{
+    display: inline;
+    padding: 0 5px;
+}
+
+.dis_toolbutton{
+    color: gray;
+}

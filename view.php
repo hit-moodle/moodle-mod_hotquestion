@@ -61,6 +61,7 @@ if (!$ajax){
     $PAGE->set_heading($course->shortname);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
     $PAGE->requires->js('/mod/hotquestion/actions.js');
+    $PAGE->requires->css('/mod/hotquestion/styles.css');
 
     $PAGE->set_context($context);
     $PAGE->set_cm($cm);
@@ -157,11 +158,6 @@ if (trim($hotquestion->intro)) {
     echo $OUTPUT->box_end();
 }
 
-// Refresh button
-echo $OUTPUT->container_start("refreshbar");
-echo html_writer::link('view.php?id='.$cm->id, get_string('refresh', 'hotquestion'), array('id' => 'refresh_button'));
-echo $OUTPUT->container_end();
-
 // Ask form
 if(has_capability('mod/hotquestion:ask', $context)){
     $mform->display();
@@ -169,9 +165,9 @@ if(has_capability('mod/hotquestion:ask', $context)){
 
 // Short messages for users. Hiden by default.
 echo html_writer::start_tag('div', array('id' => 'page_message'));
-echo html_writer::tag('span', get_string('questionsubmitted', 'hotquestion'), array('style' => 'display:none;color:green;'));
-echo html_writer::tag('span', get_string('invalidquestion', 'hotquestion'), array('style' => 'display:none;color:red;'));
-echo html_writer::tag('span', get_string('connectionerror', 'hotquestion'), array('style' => 'display:none;color:red;'));
+echo html_writer::tag('span', get_string('questionsubmitted', 'hotquestion'), array('style' => 'display:none;', 'class' => 'successmsg'));
+echo html_writer::tag('span', get_string('invalidquestion', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
+echo html_writer::tag('span', get_string('connectionerror', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
 echo html_writer::end_tag('div');
 
 // Look for rounds
@@ -207,15 +203,20 @@ if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
 }
 
 // Print round toolbar
+$toolbuttons = array();
 echo $OUTPUT->container_start("toolbar");
 if (!empty($prev_round)) {
     $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$prev_round->id));
-    echo html_writer::link($url, '(' . get_string('previous') . ')' );
+    $toolbuttons[] = html_writer::link($url, get_string('previous'), array('class' => 'toolbutton'));
+} else {
+    $toolbuttons[] = html_writer::tag('span', get_string('previous'), array('class' => 'dis_toolbutton'));
 }
 
 if (!empty($next_round)) {
     $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$next_round->id));
-    echo html_writer::link($url, '(' . get_string('next') . ')' );
+    $toolbuttons[] = html_writer::link($url, get_string('next'), array('class' => 'toolbutton'));
+} else {
+    $toolbuttons[] = html_writer::tag('span', get_string('next'), array('class' => 'dis_toolbutton'));
 }
 
 if (has_capability('mod/hotquestion:manage', $context)) {
@@ -223,8 +224,12 @@ if (has_capability('mod/hotquestion:manage', $context)) {
     $options['id'] = $cm->id;
     $options['action'] = 'newround';
     $url = new moodle_url('/mod/hotquestion/view.php', $options);
-    echo $OUTPUT->single_button($url, get_string('newround', 'hotquestion'), 'get');
+    $toolbuttons[] = html_writer::link($url, get_string('newround', 'hotquestion'), array('class' => 'toolbutton'));
 }
+
+// Refresh button
+$toolbuttons[] = html_writer::link('view.php?id='.$cm->id, get_string('refresh', 'hotquestion'), array('class' => 'toolbutton'));
+echo html_writer::alist($toolbuttons, array('id' => 'toolbar'));
 echo $OUTPUT->container_end();
 
 // Questions list
