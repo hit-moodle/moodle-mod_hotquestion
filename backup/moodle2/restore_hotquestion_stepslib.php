@@ -96,9 +96,8 @@ class restore_hotquestion_activity_structure_step extends restore_activity_struc
         global $DB;
 
         $data = (object)$data;
-        $oldid = $data->id;
 
-        $data->question = $this->get_new_parentid('question');
+        $data->question = $this->get_new_parentid('hotquestion_question');
         $data->voter = $this->get_mappingid('user', $data->voter);
 
         $newitemid = $DB->insert_record('hotquestion_votes', $data);
