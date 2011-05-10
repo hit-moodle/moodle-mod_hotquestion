@@ -250,8 +250,8 @@ if ($questions) {
     $table = new html_table();
     $table->cellpadding = 10;
     $table->class = 'generaltable';
+    $table->width = '100%';
     $table->align = array ('left', 'center');
-    $table->size = array('', '1%');
 
     $table->head = array(get_string('question', 'hotquestion'), get_string('heat', 'hotquestion'));
 
