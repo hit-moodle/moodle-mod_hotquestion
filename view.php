@@ -206,16 +206,16 @@ $toolbuttons = array();
 echo $OUTPUT->container_start("toolbar");
 if (!empty($prev_round)) {
     $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$prev_round->id));
-    $toolbuttons[] = html_writer::link($url, get_string('previous'), array('class' => 'toolbutton'));
+    $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed_rtl'), array('class' => 'toolbutton', 'title' => get_string('previousround', 'hotquestion')));
 } else {
-    $toolbuttons[] = html_writer::tag('span', get_string('previous'), array('class' => 'dis_toolbutton'));
+    $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty_rtl'), array('class' => 'dis_toolbutton'));
 }
 
 if (!empty($next_round)) {
     $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id, 'round'=>$next_round->id));
-    $toolbuttons[] = html_writer::link($url, get_string('next'), array('class' => 'toolbutton'));
+    $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed'), array('class' => 'toolbutton', 'title' => get_string('nextround', 'hotquestion')));
 } else {
-    $toolbuttons[] = html_writer::tag('span', get_string('next'), array('class' => 'dis_toolbutton'));
+    $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty'), array('class' => 'dis_toolbutton'));
 }
 
 if (has_capability('mod/hotquestion:manage', $context)) {
@@ -223,11 +223,11 @@ if (has_capability('mod/hotquestion:manage', $context)) {
     $options['id'] = $cm->id;
     $options['action'] = 'newround';
     $url = new moodle_url('/mod/hotquestion/view.php', $options);
-    $toolbuttons[] = html_writer::link($url, get_string('newround', 'hotquestion'), array('class' => 'toolbutton'));
+    $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/add'), array('class' => 'toolbutton', 'title' => get_string('newround', 'hotquestion')));
 }
 
 // Refresh button
-$toolbuttons[] = html_writer::link('view.php?id='.$cm->id, get_string('refresh', 'hotquestion'), array('class' => 'toolbutton'));
+$toolbuttons[] = html_writer::link('view.php?id='.$cm->id, $OUTPUT->pix_icon('t/reload'), array('class' => 'toolbutton', 'title' => get_string('reload')));
 echo html_writer::alist($toolbuttons, array('id' => 'toolbar'));
 echo $OUTPUT->container_end();
 
