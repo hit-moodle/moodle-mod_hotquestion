@@ -81,9 +81,10 @@ if(has_capability('mod/hotquestion:ask', $context)){
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
         $data->time = time();
-        if (isset($fromform->anonymous) && $hotquestion->anonymouspost){
+        if (isset($fromform->anonymous) && $hotquestion->anonymouspost) {
             $data->anonymous = $fromform->anonymous;
-            $data->userid = 1; // Assume this user is guest
+            // Assume this user is guest
+            $data->userid = $CFG->siteguest;
         }
 
         if (!empty($data->content)) {
