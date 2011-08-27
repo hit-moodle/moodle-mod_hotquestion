@@ -38,13 +38,13 @@ $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 $ajax = optional_param('async', 0, PARAM_INT); // asychronous form request
 
 if ($id) {
-    $cm         = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
+    $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
+    $course       = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
     $hotquestion  = $DB->get_record('hotquestion', array('id' => $cm->instance), '*', MUST_EXIST);
-} elseif ($h) {
+} else if ($h) {
     $hotquestion  = $DB->get_record('hotquestion', array('id' => $h), '*', MUST_EXIST);
-    $course     = $DB->get_record('course', array('id' => $hotquestion->course), '*', MUST_EXIST);
-    $cm         = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id, false, MUST_EXIST);
+    $course       = $DB->get_record('course', array('id' => $hotquestion->course), '*', MUST_EXIST);
+    $cm           = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id, false, MUST_EXIST);
 } else {
     error('You must specify a course_module ID or an instance ID');
 }
