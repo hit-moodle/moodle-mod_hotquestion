@@ -4,19 +4,6 @@
     font-size: 90%;
 }
 
-#page_message{
-    margin-top: -20px;
-    padding-left: 20px;
-}
-
-.errormsg{
-    color: red;
-}
-
-.successmsg{
-    color: green;
-}
-
 .toolbar {
     text-align: right;
     padding: 5px;

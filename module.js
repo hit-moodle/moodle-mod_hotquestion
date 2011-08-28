@@ -1,164 +1,115 @@
-
-// This file is part of Moodle - http://moodle.org/
-//
-// Moodle is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// Moodle is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-
 /**
  * Handle submitting question and voting action of hotquestion 
  * using Ajax of YUI
- *
- * You can have a rather longer description of the file as well,
- * if you like, and it can span multiple lines.
  *
  * @package   mod_hotquestion
  * @copyright 2011 Sun Zhigang
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-YUI().use('io-base', 'node', function(Y){
-    var submitButton = Y.one('#id_submitbutton');
-    var questionText = Y.one('#id_question');
-    var courseID = Y.one('#hotquestion_courseid');
-    var voteButton = Y.all('.hotquestion_vote');
-    var contentdiv = Y.one('.region-content');
-    var toolbar = Y.all('.toolbutton');
+M.mod_hotquestion = {};
 
-    var courseid = courseID.get('value');
-    var sUrl = 'view.php';
-    var refresh = false;
+M.mod_hotquestion.Y = {};
 
-    function reBind(){
-        submitButton = Y.one('#id_submitbutton');
-        questionText = Y.one('#id_question');
-        courseID = Y.one('#hotquestion_courseid');
-        voteButton = Y.all('.hotquestion_vote');
-        contentdiv = Y.one('.region-content');
-        toolbar = Y.all('.toolbutton');
+M.mod_hotquestion.questionbox = {};
+M.mod_hotquestion.submitbutton = {};
 
-        if(submitButton){
-            submitButton.on('click', submitQuestion);
-        }
+M.mod_hotquestion.init = function(Y) {
+    M.mod_hotquestion.Y = Y;
 
-        if(voteButton){
-            voteButton.on('click', linkAction);
-        }
+    // Init question box
+    M.mod_hotquestion.questionbox = Y.one('#id_question');
+    M.mod_hotquestion.questionbox.on('valueChange', M.mod_hotquestion.questionchanged);
 
-        if(toolbar){
-            toolbar.on('click', linkAction);
-        }
+    // Init submit button
+    M.mod_hotquestion.submitbutton = Y.one('#id_submitbutton');
+    M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    Y.on("submit", M.mod_hotquestion.submit, '#mform1');
+
+    // bind toolbar buttons
+    Y.on('click', M.mod_hotquestion.refresh, '.hotquestion_vote');
+    Y.on('click', M.mod_hotquestion.refresh, '.toolbutton');
+
+    // bind io events
+    Y.on('io:success', M.mod_hotquestion.iosuccess);
+    Y.on('io:failure', M.mod_hotquestion.iofailure);
+}
+
+M.mod_hotquestion.iosuccess = function(ioId, o) {
+    var Y = M.mod_hotquestion.Y;
+
+    // update questions
+    var contentdiv = Y.one('#questions_list');
+    contentdiv.set("innerHTML", o.responseText);
+
+    // clean up
+    M.mod_hotquestion.questionbox.set('value', '');
+    M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+
+    // rebind buttons
+    Y.on('click', M.mod_hotquestion.refresh, '.hotquestion_vote');
+    Y.on('click', M.mod_hotquestion.refresh, '.toolbutton');
+}
+
+M.mod_hotquestion.iofailure = function(ioId, o) {
+    M.mod_hotquestion.submitbutton.removeAttribute('disabled');
+    alert(M.str.hotquesiont.connectionerror);
+}
+
+M.mod_hotquestion.refresh = function(e) {
+    e.preventDefault();
+
+    var data = e.currentTarget.get('href').split('?',2)[1];
+    data += '&ajax=1';
+    var cfg = {
+        method : "GET",
+        data : data
     }
 
-    var handleSuccess = function(ioId, o){
-        contentdiv.set("innerHTML", o.responseText);
-        // Because it replaced the nodes, we need to 
-        // find the new nodes and bind the click events again
-        reBind();
-        questionText.set("innerHTML", '');
-        
-        if(!refresh){
-            showPageMessage(0);
-        }
+    var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
+}
+
+M.mod_hotquestion.questionchanged = function(e) {
+    var question = M.mod_hotquestion.questionbox.get('value');
+    var submitbutton = M.mod_hotquestion.submitbutton;
+    if (YAHOO.lang.trim(question) == '') {
+        submitbutton.set('disabled', 'disabled');
+    } else {
+        submitbutton.removeAttribute('disabled');
+    }
+}
+
+M.mod_hotquestion.submit = function(e) {
+    e.preventDefault();
+
+    var question = M.mod_hotquestion.questionbox.get('value');
+    if (YAHOO.lang.trim(question) == '') {
+        return; // ignore empty question
     }
 
-    var handleFailure = function(ioId, o){
-        if(submitButton.hasAttribute('disabled')){
-            submitButton.removeAttribute('disabled');
-        }
-        showPageMessage(2);
-    }
+    // To avoid multiple clicks
+    M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
 
-    Y.on('io:success', handleSuccess);
-    Y.on('io:failure', handleFailure);
-    
-    /**
-     * Page messages is in div#page_message. They are hiden by default.
-     * Call this function to show a message by its index.
-     * @param index {int} message's NO.
-     */
-    function showPageMessage(index){
-        var page_messages = Y.all("#page_message span");
-        page_messages.setStyle('display', 'none');
+    // Get all input components
+    var form = e.currentTarget;
+    var inputs = form.all('input');
 
-        var message = page_messages.item(index);
-        message.setStyle('display', '');
-    }
-
-    function addAjax(data){
-        data += "&async=1";
-        return data;
-    }
-
-    var submitQuestion = function(e){
-        e.preventDefault();
-        refresh = false;
-        
-        // To avoid multiple clicks
-        submitButton.set('disabled', 'disabled');
-
-        var question = questionText.get('value');
-        var sesskey = courseID.next();
-        var qform = sesskey.next();
-        var submit = submitButton.get('value');
-        var anonymous = submitButton.next().one('input').get('checked');
-
-        var data = "id="+courseid+
-                   "&sesskey="+sesskey.get('value')+
-                   "&_qf__hotquestion_form="+qform.get('value')+
-                   "&question="+question+
-                   "&submitbutton="+submit
-        if(anonymous){
-            data += "&anonymous=1";
-        }
-
-        data = addAjax(data);
-
-        if(question == ''){
-            submitButton.removeAttribute('disabled');
-            showPageMessage(1);
+    // construct post data
+    var data = '';
+    inputs.each(function(node, index, nodelist) {
+        if (node.get('type') != 'checkbox') {
+            data += node.get('name')+'='+node.get('value')+'&';
         } else {
-            var cfg = {
-                method : "POST",
-                data : data
-            }
-            var request = Y.io(sUrl, cfg);
+            data += node.get('name')+'='+node.get('checked')+'&';
         }
-    }
+    });
+    data += 'question='+question+'&';
+    data += 'ajax=1';
 
-    var linkAction = function(e){
-        e.preventDefault();
-        refresh = true;
+    var cfg = {
+        method : "POST",
+        data : data
+    };
+    var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
+}
 
-        var data = e.currentTarget.get('href').split('?',2)[1];
-        data = addAjax(data);
-        var cfg = {
-            method : "GET",
-            data : data
-        }
-
-        var request = Y.io(sUrl, cfg);
-    }
-
-    if(submitButton){
-        submitButton.on('click', submitQuestion);
-    }
-
-    if(voteButton){
-        voteButton.on('click', linkAction);
-    }
-
-    if(toolbar){
-        toolbar.on('click', linkAction);
-    }
-});

@@ -35,7 +35,7 @@ require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID, or
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
-$ajax = optional_param('async', 0, PARAM_INT); // asychronous form request
+$ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 
 if ($id) {
     $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
@@ -60,13 +60,23 @@ if (!$ajax){
     $PAGE->set_title($hotquestion->name);
     $PAGE->set_heading($course->shortname);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
-    $PAGE->requires->js('/mod/hotquestion/actions.js');
-    $PAGE->requires->css('/mod/hotquestion/styles.css');
 
     $PAGE->set_context($context);
     $PAGE->set_cm($cm);
     $PAGE->add_body_class('hotquestion');
     //$PAGE->set_focuscontrol('some-html-id');
+
+    $jsmodule = array(
+        'name'     => 'mod_hotquestion',
+        'fullpath' => '/mod/hotquestion/module.js',
+        'requires' => array('base', 'io', 'node', 'event-valuechange'),
+        'strings' => array(
+            array('invalidquestion', 'hotquestion'),
+            array('connectionerror', 'hotquestion')
+        )
+    );
+
+    $PAGE->requires->js_init_call('M.mod_hotquestion.init', null, false, $jsmodule);
 }
 
 require_capability('mod/hotquestion:view', $context);
@@ -81,7 +91,7 @@ if(has_capability('mod/hotquestion:ask', $context)){
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
         $data->time = time();
-        if (isset($fromform->anonymous) && $hotquestion->anonymouspost) {
+        if (isset($fromform->anonymous) && $fromform->anonymous && $hotquestion->anonymouspost) {
             $data->anonymous = $fromform->anonymous;
             // Assume this user is guest
             $data->userid = $CFG->siteguest;
@@ -153,25 +163,21 @@ if (!empty($action)) {
 
 /// Print the main part of the page
 
+if (!$ajax) {
+    // Print hotquestion description 
+    if (trim($hotquestion->intro)) {
+        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+        echo format_module_intro('hotquestion', $hotquestion, $cm->id);
+        echo $OUTPUT->box_end();
+    }
 
-// Print hotquestion description 
-if (trim($hotquestion->intro)) {
-    echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-    echo format_module_intro('hotquestion', $hotquestion, $cm->id);
-    echo $OUTPUT->box_end();
+    // Ask form
+    if(has_capability('mod/hotquestion:ask', $context)){
+        $mform->display();
+    }
 }
 
-// Ask form
-if(has_capability('mod/hotquestion:ask', $context)){
-    $mform->display();
-}
-
-// Short messages for users. Hiden by default.
-$messages = html_writer::tag('span', get_string('questionsubmitted', 'hotquestion'), array('style' => 'display:none;', 'class' => 'successmsg'));
-$messages .= html_writer::tag('span', get_string('invalidquestion', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
-$messages .= html_writer::tag('span', get_string('connectionerror', 'hotquestion'), array('style' => 'display:none;', 'class' => 'errormsg'));
-echo $OUTPUT->container($messages, null, 'page_message');
-
+echo $OUTPUT->container_start(null, 'questions_list');
 // Look for rounds
 $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');
 if (empty($rounds)) {
@@ -296,6 +302,7 @@ if ($questions) {
 }else{
     echo $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
 }
+echo $OUTPUT->container_end();
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
