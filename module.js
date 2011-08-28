@@ -44,6 +44,7 @@ M.mod_hotquestion.iosuccess = function(ioId, o) {
 
     // clean up
     M.mod_hotquestion.questionbox.set('value', '');
+    M.mod_hotquestion.questionbox.removeAttribute('disabled');
     M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
 
     // rebind buttons
@@ -53,6 +54,7 @@ M.mod_hotquestion.iosuccess = function(ioId, o) {
 
 M.mod_hotquestion.iofailure = function(ioId, o) {
     M.mod_hotquestion.submitbutton.removeAttribute('disabled');
+    M.mod_hotquestion.questionbox.removeAttribute('disabled');
     alert(M.str.hotquesiont.connectionerror);
 }
 
@@ -87,8 +89,9 @@ M.mod_hotquestion.submit = function(e) {
         return; // ignore empty question
     }
 
-    // To avoid multiple clicks
+    // To avoid multiple clicks and editing
     M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    M.mod_hotquestion.questionbox.set('disabled', 'disabled');
 
     // Get all input components
     var form = e.currentTarget;
