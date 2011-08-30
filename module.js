@@ -31,28 +31,30 @@ M.mod_hotquestion.init = function(Y) {
     Y.on('click', M.mod_hotquestion.refresh, '.toolbutton');
 
     // bind io events
-    Y.on('io:success', M.mod_hotquestion.iosuccess);
+    Y.on('io:success', M.mod_hotquestion.iocomplete);
     Y.on('io:failure', M.mod_hotquestion.iofailure);
 }
 
-M.mod_hotquestion.iosuccess = function(ioId, o) {
+M.mod_hotquestion.iocomplete = function(transactionid, response, arguments) {
     var Y = M.mod_hotquestion.Y;
 
     // update questions
     var contentdiv = Y.one('#questions_list');
-    contentdiv.set("innerHTML", o.responseText);
+    contentdiv.set("innerHTML", response.responseText);
 
-    // clean up
-    M.mod_hotquestion.questionbox.set('value', '');
-    M.mod_hotquestion.questionbox.removeAttribute('disabled');
-    M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    // clean up form if this is a submit IO
+    if (arguments.caller == 'submit') {
+        M.mod_hotquestion.questionbox.set('value', '');
+        M.mod_hotquestion.questionbox.removeAttribute('disabled');
+        M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    }
 
     // rebind buttons
     Y.on('click', M.mod_hotquestion.refresh, '.hotquestion_vote');
     Y.on('click', M.mod_hotquestion.refresh, '.toolbutton');
 }
 
-M.mod_hotquestion.iofailure = function(ioId, o) {
+M.mod_hotquestion.iofailure = function(transactionid, response, arguments) {
     M.mod_hotquestion.submitbutton.removeAttribute('disabled');
     M.mod_hotquestion.questionbox.removeAttribute('disabled');
     alert(M.str.hotquesiont.connectionerror);
@@ -65,8 +67,11 @@ M.mod_hotquestion.refresh = function(e) {
     data += '&ajax=1';
     var cfg = {
         method : "GET",
-        data : data
-    }
+        data : data,
+        arguments: {
+            caller: 'refresh',
+        }
+    };
 
     var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
 }
@@ -111,7 +116,10 @@ M.mod_hotquestion.submit = function(e) {
 
     var cfg = {
         method : "POST",
-        data : data
+        data : data,
+        arguments: {
+            caller: 'submit',
+        }
     };
     var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
 }
