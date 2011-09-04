@@ -106,8 +106,7 @@ M.mod_hotquestion.submit = function(e) {
     M.mod_hotquestion.questionbox.set('disabled', 'disabled');
 
     // Get all input components
-    var form = e.currentTarget;
-    var inputs = form.all('input');
+    var inputs = M.mod_hotquestion.Y.all('#mform1 input');
 
     // construct post data
     var data = '';
