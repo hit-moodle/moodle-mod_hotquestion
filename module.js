@@ -73,7 +73,7 @@ M.mod_hotquestion.refresh = function(e) {
         }
     };
 
-    var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
+    var request = M.mod_hotquestion.Y.io('view.php', cfg);
 }
 
 M.mod_hotquestion.questionchanged = function(e) {
@@ -121,6 +121,6 @@ M.mod_hotquestion.submit = function(e) {
             caller: 'submit',
         }
     };
-    var request = M.mod_hotquestion.Y.io('/mod/hotquestion/view.php', cfg);
+    var request = M.mod_hotquestion.Y.io('view.php', cfg);
 }
 
