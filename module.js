@@ -23,7 +23,9 @@ M.mod_hotquestion.init = function(Y) {
 
     // Init submit button
     M.mod_hotquestion.submitbutton = Y.one('#id_submitbutton');
-    M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    if (M.mod_hotquestion.getquestion() == '') {
+        M.mod_hotquestion.submitbutton.set('disabled', 'disabled');
+    }
     Y.on("submit", M.mod_hotquestion.submit, '#mform1');
 
     // bind toolbar buttons
@@ -76,10 +78,15 @@ M.mod_hotquestion.refresh = function(e) {
     var request = M.mod_hotquestion.Y.io('view.php', cfg);
 }
 
-M.mod_hotquestion.questionchanged = function(e) {
+M.mod_hotquestion.getquestion = function() {
     var question = M.mod_hotquestion.questionbox.get('value');
+    return YAHOO.lang.trim(question);
+}
+
+M.mod_hotquestion.questionchanged = function(e) {
+    var question = M.mod_hotquestion.getquestion();
     var submitbutton = M.mod_hotquestion.submitbutton;
-    if (YAHOO.lang.trim(question) == '') {
+    if (question == '') {
         submitbutton.set('disabled', 'disabled');
     } else {
         submitbutton.removeAttribute('disabled');
@@ -89,8 +96,8 @@ M.mod_hotquestion.questionchanged = function(e) {
 M.mod_hotquestion.submit = function(e) {
     e.preventDefault();
 
-    var question = M.mod_hotquestion.questionbox.get('value');
-    if (YAHOO.lang.trim(question) == '') {
+    var question = M.mod_hotquestion.getquestion();
+    if (question == '') {
         return; // ignore empty question
     }
 
