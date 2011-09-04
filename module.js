@@ -59,7 +59,7 @@ M.mod_hotquestion.iocomplete = function(transactionid, response, arguments) {
 M.mod_hotquestion.iofailure = function(transactionid, response, arguments) {
     M.mod_hotquestion.submitbutton.removeAttribute('disabled');
     M.mod_hotquestion.questionbox.removeAttribute('disabled');
-    alert(M.str.hotquesiont.connectionerror);
+    alert(M.str.hotquestion.connectionerror);
 }
 
 M.mod_hotquestion.refresh = function(e) {
