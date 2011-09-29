@@ -277,8 +277,8 @@ if ($questions) {
             $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $course->id . '">' . fullname($user) . '</a>';
         }
 	if (time() - $question->time < 5)
-	    $a->time = 'now';
-	else if (time() - question->time < 86400)
+	    $a->time = get_string('now');
+	else if (time() - question->time < 86400)//a day equals 86400 seconds
 	    $a->time = get_string('early', 'assignment', format_time(time() - $question->time));
 	else $a->time = userdate($question->time);
         $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
