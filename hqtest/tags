@@ -1,0 +1,107 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+__construct	render.php	/^    public function __construct(moodle_page$page, $target) {$/;"	f
+action	test/view_new.php	/^$action  = optional_param('action', '', PARAM_ACTION);  \/\/ Vote or unvote$/;"	v
+action	view.php	/^$action  = optional_param('action', '', PARAM_ACTION);  \/\/ Vote or unvote$/;"	v
+ajax	test/view_new.php	/^$ajax = optional_param('ajax', 0, PARAM_BOOL); \/\/ asychronous form request$/;"	v
+ajax	view.php	/^$ajax = optional_param('ajax', 0, PARAM_BOOL); \/\/ asychronous form request$/;"	v
+can_ask	render.php	/^	$this->can_ask = has_capablility('mod\/hotquestion:ask', $this->context);$/;"	v
+can_ask	render.php	/^    protected $can_ask;$/;"	v
+can_manage	render.php	/^	$this->can_manage = has_capability('mod\/hotquestion:manage', $this->context);$/;"	v
+can_manage	render.php	/^    protected $can_manage;$/;"	v
+can_vote	render.php	/^	$this->can_vote = has_capability('mod\/hotquestion:vote', $this->context);$/;"	v
+can_vote	render.php	/^    protected $can_vote;$/;"	v
+cm	render.php	/^    var $cm = null; $/;"	v
+cm	test/view_new.php	/^    $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);$/;"	v
+cm	test/view_new.php	/^    $cm           = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id, false, MUST_EXIST);$/;"	v
+cm	view.php	/^    $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);$/;"	v
+cm	view.php	/^    $cm           = get_coursemodule_from_instance('hotquestion', $hotquestion->id, $course->id, false, MUST_EXIST);$/;"	v
+content	render.php	/^		$content = format_text($question->content, FORMAT_MOODLE, $formatoptions);$/;"	v
+content	test/view_new.php	/^        $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);$/;"	v
+context	render.php	/^	$this->context = $page->context;$/;"	v
+context	test/view_new.php	/^$context = get_context_instance(CONTEXT_MODULE, $cm->id);$/;"	v
+context	view.php	/^$context = get_context_instance(CONTEXT_MODULE, $cm->id);$/;"	v
+course	test/view_new.php	/^    $course       = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);$/;"	v
+course	test/view_new.php	/^    $course       = $DB->get_record('course', array('id' => $hotquestion->course), '*', MUST_EXIST);$/;"	v
+course	view.php	/^    $course       = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);$/;"	v
+course	view.php	/^    $course       = $DB->get_record('course', array('id' => $hotquestion->course), '*', MUST_EXIST);$/;"	v
+current_key	render.php	/^	    $current_key = array_search($roundid, $ids);$/;"	v
+current_key	test/view_new.php	/^    $current_key = array_search($roundid, $ids);$/;"	v
+current_round	render.php	/^	    $current_round = $rounds[$roundid];$/;"	v
+current_round	render.php	/^	    $current_round = array_pop($rounds);$/;"	v
+current_round	test/view_new.php	/^    $current_round = $rounds[$roundid];$/;"	v
+current_round	test/view_new.php	/^    $current_round = array_pop($rounds);$/;"	v
+display_questionlist	render.php	/^    function display_questionlist($questions) {$/;"	f
+h	test/view_new.php	/^$h  = optional_param('h', 0, PARAM_INT);  \/\/ hotquestion instance ID$/;"	v
+h	view.php	/^$h  = optional_param('h', 0, PARAM_INT);  \/\/ hotquestion instance ID$/;"	v
+handle_question	render.php	/^    function handle_question($fromform){$/;"	f
+handle_vote	render.php	/^    function handle_vote(){$/;"	f
+heat	render.php	/^		$heat = $question->votecount;$/;"	v
+heat	test/view_new.php	/^        $heat = $question->votecount;$/;"	v
+hotquestion	render.php	/^    var $hotquestion = null;$/;"	v
+hotquestion	test/view_new.php	/^    $hotquestion  = $DB->get_record('hotquestion', array('id' => $cm->instance), '*', MUST_EXIST);$/;"	v
+hotquestion	test/view_new.php	/^    $hotquestion  = $DB->get_record('hotquestion', array('id' => $h), '*', MUST_EXIST);$/;"	v
+hotquestion	view.php	/^    $hotquestion  = $DB->get_record('hotquestion', array('id' => $cm->instance), '*', MUST_EXIST);$/;"	v
+hotquestion	view.php	/^    $hotquestion  = $DB->get_record('hotquestion', array('id' => $h), '*', MUST_EXIST);$/;"	v
+id	test/view_new.php	/^$id = optional_param('id', 0, PARAM_INT); \/\/ course_module ID, or$/;"	v
+id	view.php	/^$id = optional_param('id', 0, PARAM_INT); \/\/ course_module ID, or$/;"	v
+ids	render.php	/^	$ids = array_keys($rounds);$/;"	v
+ids	test/view_new.php	/^$ids = array_keys($rounds);$/;"	v
+info	render.php	/^		$info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'<\/div>';$/;"	v
+info	test/view_new.php	/^        $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'<\/div>';$/;"	v
+jsmodule	test/view_new.php	/^    $jsmodule = array($/;"	v
+jsmodule	view.php	/^    $jsmodule = array($/;"	v
+line	render.php	/^		$line = array();$/;"	v
+line	test/view_new.php	/^        $line = array();$/;"	v
+local_hotquestion_renderer	render.php	/^class local_hotquestion_renderer extends plugin_renderer_base {$/;"	c
+lookfor_rounds	render.php	/^    function lookfor_rounds($rounds){$/;"	f
+mform	render.php	/^        $mform = new hotquestion_form(null, $hotquestion->anonymouspost);$/;"	v
+mform	view.php	/^    $mform = new hotquestion_form(null, $hotquestion->anonymouspost);$/;"	v
+new_round	render.php	/^    function new_round(){$/;"	f
+next_round	render.php	/^		$next_round = $rounds[$ids[$current_key+1]];$/;"	v
+next_round	test/view_new.php	/^        $next_round = $rounds[$ids[$current_key+1]];$/;"	v
+old	render.php	/^        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id DESC', '*', 0, 1));$/;"	v
+old	test/view_new.php	/^        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id DESC', '*', 0, 1));$/;"	v
+options	render.php	/^	    $options = array();$/;"	v
+options	test/view_new.php	/^    $options = array();$/;"	v
+output	render.php	/^	$output = '';$/;"	v
+output	render.php	/^	$output = html_writer::box($box);$/;"	v
+output	test/view_new.php	/^$output = $PAGE->get_renderer('mod_hotqustion_renderer');$/;"	v
+output	view.php	/^$output = $PAGE->get_renderer('mod_hotqustion_render');$/;"	v
+prev_round	render.php	/^		$prev_round = $rounds[$ids[$current_key-1]];$/;"	v
+prev_round	render.php	/^	    $prev_round = array_pop($rounds);$/;"	v
+prev_round	test/view_new.php	/^        $prev_round = $rounds[$ids[$current_key-1]];$/;"	v
+prev_round	test/view_new.php	/^    $prev_round = array_pop($rounds);$/;"	v
+q	render.php	/^	    $q = required_param('q',PARAM_INT); \/\/quesiton ID to vote$/;"	v
+q	test/view_new.php	/^        $q  = required_param('q', PARAM_INT);  \/\/ question ID to vote$/;"	v
+question	render.php	/^	    $question = $DB->get_record('hotquestion_questions', array('id'=>$q));$/;"	v
+question	test/view_new.php	/^        $question = $DB->get_record('hotquestion_questions', array('id'=>$q));$/;"	v
+questions	test/view_new.php	/^$questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount$/;"	v
+questions	view.php	/^$questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount$/;"	v
+rid	render.php	/^        $rid = $DB->insert_record('hotquestion_rounds', $new);$/;"	v
+rid	test/view_new.php	/^        $rid = $DB->insert_record('hotquestion_rounds', $new);$/;"	v
+roundid	render.php	/^	$roundid  = optional_param('round', -1, PARAM_INT);$/;"	v
+roundid	test/view_new.php	/^$roundid  = optional_param('round', -1, PARAM_INT);$/;"	v
+roundnum	render.php	/^	    $roundnum = $current_key+1;$/;"	v
+roundnum	render.php	/^	    $roundnum = array_search($current_round->id, $ids) + 1;$/;"	v
+roundnum	test/view_new.php	/^    $roundnum = $current_key+1;$/;"	v
+roundnum	test/view_new.php	/^    $roundnum = array_search($current_round->id, $ids) + 1;$/;"	v
+rounds	test/view_new.php	/^$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');$/;"	v
+rounds	view.php	/^$rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');$/;"	v
+table	render.php	/^	    $table = new html_table();$/;"	v
+table	test/view_new.php	/^    $table = new html_table();$/;"	v
+toolbuttons	render.php	/^	$toolbuttons = array();$/;"	v
+toolbuttons	render.php	/^    function toolbuttons(){$/;"	f
+toolbuttons	test/view_new.php	/^$toolbuttons = array();$/;"	v
+url	render.php	/^	    $url = new moodle_url('\/mod\/hotquestion\/view.php', $options);$/;"	v
+url	render.php	/^	    $url = new moodle_url('\/mod\/hotquestion\/view.php', array('id'=>$cm->id, 'round'=>$next_round->id));$/;"	v
+url	render.php	/^	    $url = new moodle_url('\/mod\/hotquestion\/view.php', array('id'=>$cm->id, 'round'=>$prev_round->id));$/;"	v
+url	test/view_new.php	/^    $url = new moodle_url('\/mod\/hotquestion\/view.php', $options);$/;"	v
+url	test/view_new.php	/^    $url = new moodle_url('\/mod\/hotquestion\/view.php', array('id'=>$cm->id, 'round'=>$next_round->id));$/;"	v
+url	test/view_new.php	/^    $url = new moodle_url('\/mod\/hotquestion\/view.php', array('id'=>$cm->id, 'round'=>$prev_round->id));$/;"	v
+user	render.php	/^		$user = $DB->get_record('user', array('id'=>$question->userid));$/;"	v
+user	test/view_new.php	/^        $user = $DB->get_record('user', array('id'=>$question->userid));$/;"	v
