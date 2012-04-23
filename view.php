@@ -34,10 +34,11 @@ require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
 require_once($CFG->dirroot . '/mod/hotquestion/render.php');
 
-$id = optional_param('id', 0, PARAM_INT); // course_module ID, or
+$id = optional_param('id', 0, PARAM_INT); // course_module ID
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
+$roundid = optional_param('round', -1, PARAM_INT);  //round id 
 
 if ($id) {
     $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
@@ -51,8 +52,10 @@ if ($id) {
     error('You must specify a course_module ID or an instance ID');
 }
 
+// confirm id
 require_login($course, true, $cm);
 add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquestion->name, $cm->id);
+
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
 // Print the page header
@@ -61,12 +64,9 @@ if (!$ajax){
     $PAGE->set_title($hotquestion->name);
     $PAGE->set_heading($course->shortname);
     $PAGE->set_button(update_module_button($cm->id, $course->id, get_string('modulename', 'hotquestion')));
-
     $PAGE->set_context($context);
     $PAGE->set_cm($cm);
     $PAGE->add_body_class('hotquestion');
-    //$PAGE->set_focuscontrol('some-html-id');
-
     $jsmodule = array(
         'name'     => 'mod_hotquestion',
         'fullpath' => '/mod/hotquestion/module.js',
@@ -76,10 +76,9 @@ if (!$ajax){
             array('connectionerror', 'hotquestion')
         )
     );
-
     $PAGE->requires->js_init_call('M.mod_hotquestion.init', null, false, $jsmodule);
 }
-
+// confirm view capabilty
 require_capability('mod/hotquestion:view', $context);
 
 $output = $PAGE->get_renderer('mod_hotquestion');
@@ -92,14 +91,29 @@ if (has_capability('mod/hotquestion:ask', $context)) {
     }
 }
 
+
+// Handle the vote and newround
+if (!empty($action)) {
+    switch ($action) {
+        case 'vote':
+	    if(has_capability('mod/hotquestion:vote', $context))
+	        $output->handle_vote($course, $cm);
+	    break;
+        case 'newround':
+	    if(has_capability('mod/hotquestion:manage', $context))
+	        $output->new_round($hotquestion, $cm);
+	    break;
+    }
+}
+
 // start print page
 if (!$ajax){
     echo $OUTPUT->header();
     // Print hotquestion description 
     if (trim($hotquestion->intro)) {
-        echo $output->box_start('generalbox boxaligncenter', 'intro');
-        echo format_module_intro('hotquestion', $hotquestion, $cm->id);
-        echo $output->box_end();
+        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+	echo format_module_intro('hotquestion', $hotquestion, $cm->id);
+        echo $OUTPUT->box_end();
     }
     // Ask form
     if (has_capability('mod/hotquestion:ask', $context)) {
@@ -107,23 +121,9 @@ if (!$ajax){
     }
 }
 
-// Handle the vote and newround
-if (!empty($action)) {
-    switch ($action) {
-        case 'vote':
-	    if(has_capability('mod/hotquestion:vote', $context))
-	        echo $output->handle_vote($course, $cm);
-	    break;
-        case 'newround':
-	    if(has_capability('mod/hotquestion:newround', $context))
-	        echo $output->new_round($hotquestion, $cm);
-	    break;
-    }
-}
-
 echo $OUTPUT->container_start(null, 'questions_list');
 // Look for rounds
-echo $output->lookfor_rounds($hotquestion);
+$output->lookfor_rounds($hotquestion, $roundid);
 
 // Print toolbar
 echo $OUTPUT->container_start("toolbar");

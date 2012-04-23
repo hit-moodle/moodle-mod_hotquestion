@@ -66,7 +66,6 @@ class mod_hotquestion_renderer {
     // handle new vote on question
     function handle_vote($course, $cm){
 	global $DB, $USER;
-	$output = '';
 	$q = required_param('q',PARAM_INT); //quesiton ID to vote
 	$question = $DB->get_record('hotquestion_questions', array('id'=>$q));
 	if ($question && $USER->id != $question->userid) {
@@ -79,13 +78,11 @@ class mod_hotquestion_renderer {
 	     } else 
 	          delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id); 
 	 }
-	return $output;
     }
 
     // handle new_round process
     function new_round($hotquestion, $cm) {
 	global $DB;
-	$output = '';
 	// Close the latest round
         $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id DESC', '*', 0, 1));
         $old->endtime = time();
@@ -96,13 +93,11 @@ class mod_hotquestion_renderer {
         $new->endtime = 0;
         $rid = $DB->insert_record('hotquestion_rounds', $new);
         add_to_log($course->id, 'hotquestion', 'add round', "view.php?id=$cm->id&round=$rid", $rid, $cm->id);
-    	return $output;
     }
 
    //look for exist rounds from database
-   function lookfor_rounds($hotquestion) {
+   function lookfor_rounds($hotquestion, $roundid) {
 	global $DB;
-	$output = '';
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');
 	if (empty($rounds)) {
 	    // Create the first round
@@ -112,7 +107,7 @@ class mod_hotquestion_renderer {
 	    $round->id = $DB->insert_record('hotquestion_rounds', $round);
 	    $rounds[] = $round;
 	}
-	$roundid  = optional_param('round', -1, PARAM_INT);
+//	$roundid  = optional_param('round', -1, PARAM_INT);
 	$ids = array_keys($rounds);
 	if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
 	    $this->current_round = $rounds[$roundid];
@@ -131,7 +126,6 @@ class mod_hotquestion_renderer {
 	    $this->prev_round = array_pop($rounds);
 	    $roundnum = array_search($this->current_round->id, $ids) + 1;
 	}
-	return $output;	
     }
 
     // show toolbuttons
@@ -164,8 +158,10 @@ class mod_hotquestion_renderer {
 	}
 
 	// add refresh button
-	$toolbuttons[] = html_writer::link('view.php?id='.$cm->id, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
+	$url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id));
+	$toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
 	
+	// all available toolbuttons
 	$output .= html_writer::alist($toolbuttons, array('id' => 'toolbar'));   
 	return $output;
     }
