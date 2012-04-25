@@ -155,3 +155,4 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 	return $output;
     }
 }
+
