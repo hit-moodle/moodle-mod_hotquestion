@@ -32,14 +32,15 @@ require_once(dirname(dirname(dirname(__FILE__))).'/config.php');
 require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/locallib.php');
 require_once($CFG->dirroot . '/mod/hotquestion/mod_form.php');
-require_once($CFG->dirroot . '/mod/hotquestion/render.php');
 
 $id = optional_param('id', 0, PARAM_INT); // course_module ID
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
 $roundid = optional_param('round', -1, PARAM_INT);  //round id 
+$q = optional_param('q', PARAM_INT);	//question id to vote
 
+// Get global params from $id or $h
 if ($id) {
     $cm           = get_coursemodule_from_id('hotquestion', $id, 0, false, MUST_EXIST);
     $course       = $DB->get_record('course', array('id' => $cm->course), '*', MUST_EXIST);
@@ -52,13 +53,12 @@ if ($id) {
     error('You must specify a course_module ID or an instance ID');
 }
 
-// confirm id
+// Confirm login
 require_login($course, true, $cm);
 add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquestion->name, $cm->id);
-
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
-// Print the page header
+// Set page
 if (!$ajax){
     $PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
     $PAGE->set_title($hotquestion->name);
@@ -78,65 +78,62 @@ if (!$ajax){
     );
     $PAGE->requires->js_init_call('M.mod_hotquestion.init', null, false, $jsmodule);
 }
-// confirm view capabilty
+
 require_capability('mod/hotquestion:view', $context);
 
+// Get local renderer 
 $output = $PAGE->get_renderer('mod_hotquestion');
 
-// process submit question
+// Process submited question
 if (has_capability('mod/hotquestion:ask', $context)) {
     $mform = new hotquestion_form(null, $hotquestion->anonymouspost);
     if ($fromform=$mform->get_data()){
-        $output->handle_question($fromform, $hotquestion, $course, $cm);
+        handle_question($fromform, $hotquestion, $course, $cm);
     }
 }
 
-
-// Handle the vote and newround
+// Handle vote and newround
 if (!empty($action)) {
     switch ($action) {
         case 'vote':
-	    if(has_capability('mod/hotquestion:vote', $context))
-	        $output->handle_vote($course, $cm);
+	    if(has_capability('mod/hotquestion:vote', $context)) {
+	        handle_vote($course, $cm, $q);
+	    }
 	    break;
         case 'newround':
-	    if(has_capability('mod/hotquestion:manage', $context))
-	        $output->new_round($hotquestion, $cm);
+	    if(has_capability('mod/hotquestion:manage', $context)) {
+	        new_round($hotquestion, $cm);
+	    }
 	    break;
     }
 }
 
-// start print page
+// Start print page
 if (!$ajax){
-    echo $OUTPUT->header();
+    echo $output->header();
     // Print hotquestion description 
     if (trim($hotquestion->intro)) {
-        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-	echo format_module_intro('hotquestion', $hotquestion, $cm->id);
-        echo $OUTPUT->box_end();
+	$output->hotquestion_intro($hotquestion, $cm);
     }
-    // Ask form
+    // Print ask form
     if (has_capability('mod/hotquestion:ask', $context)) {
         $mform->display(); 
     }
 }
 
-echo $OUTPUT->container_start(null, 'questions_list');
-// Look for rounds
-$output->lookfor_rounds($hotquestion, $roundid);
-
+echo $output->container_start(null, 'questions_list');
 // Print toolbar
-echo $OUTPUT->container_start("toolbar");
-echo $output->toolbuttons($cm, $context);
-echo $OUTPUT->container_end();
+echo $output->container_start("toolbar");
+echo $output->toolbuttons($cm, $context, $hotquestion, $roundid);
+echo $output->container_end();
 
-// print questions list
+// Print questions list
 echo $output->display_questionlist($hotquestion, $cm, $course, $context);
-echo $OUTPUT->container_end();
+echo $output->container_end();
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
 
 // Finish the page
 if (!$ajax){
-    echo $OUTPUT->footer();
+    echo $output->footer();
 }
