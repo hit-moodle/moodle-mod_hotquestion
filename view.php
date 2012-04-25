@@ -135,3 +135,4 @@ add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$round
 if (!$ajax){
     echo $output->footer();
 }
+
