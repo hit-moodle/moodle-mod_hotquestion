@@ -184,6 +184,3 @@ function search_questions($hotquestion, $current_round, &$questions) {
 	      GROUP BY q.id
 	      ORDER BY votecount DESC, q.time DESC");
 }
-
-
-
