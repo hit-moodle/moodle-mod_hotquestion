@@ -29,6 +29,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+<<<<<<< HEAD
 /**
  * Return whether the user has voted on specified question
  *
@@ -38,9 +39,299 @@ defined('MOODLE_INTERNAL') || die();
  */
 function has_voted($question, $user = -1) {
     global $USER, $DB;
-
-    if ($user == -1)
+    if ($user == -1) {
         $user = $USER->id;
+=======
+class mod_hotquestion_db_operation {
+    private $hotquestion;
+    private $cm;
+    private $context;
+    private $course;
 
-    return $DB->record_exists('hotquestion_votes', array('question'=>$question, 'voter'=>$user));
+    public function __construct($hotquestion, $cm, $context, $course) {
+        $this->hotquestion = $hotquestion;
+        $this->cm = $cm;
+        $this->context = $context;
+        $this->course = $course;
+    }
+
+    /**
+     * Return whether the user has voted on specified question
+     *
+     * @param int $question question id
+     * @param int $user user id. -1 means current user
+     * @return boolean
+     */
+    function has_voted($question, $user = -1) {
+        global $USER, $DB;
+        if ($user == -1) {
+            $user = $USER->id;
+        }
+        return $DB->record_exists('hotquestion_votes', array('question'=>$question, 'voter'=>$user));
+>>>>>>> ffdb382... enclose all database related functions into a class
+    }
+
+<<<<<<< HEAD
+/**
+ * Handle question submitted by user
+ *
+ * @global object
+ * @global object
+ * @global object
+ * @param object $fromform from ask form
+ * @param object $hotquestion
+ * @param object $course
+ * @param object $cm
+ */
+function handle_question($fromform, $hotquestion, $course, $cm){
+    global $USER, $CFG, $DB;
+    $data->hotquestion = $hotquestion->id;
+    $data->content = trim($fromform->question);
+    $data->userid = $USER->id;
+    $data->time = time();
+    if (isset($fromform->anonymous) && $fromform->anonymous && $hotquestion->anonymouspost) {
+        $data->anonymous = $fromform->anonymous;
+        // Assume this user is guest
+        $data->userid = $CFG->siteguest;
+    }
+    if (!empty($data->content)) {
+        $DB->insert_record('hotquestion_questions', $data);
+        add_to_log($course->id, 'hotquestion', 'add question', "view.php?id=$cm->id", $data->content, $cm->id);
+        redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+    } else {
+        redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+=======
+    /**
+     * Handle question submitted by user
+     *
+     * @global object
+     * @global object
+     * @global object
+     * @param object $fromform from ask form
+     * @param object $hotquestion
+     * @param object $course
+     * @param object $cm
+     */
+    function add_question($course, $cm, $fromform) {
+        global $USER, $CFG, $DB;
+        $data->hotquestion = $this->hotquestion->id;
+        $data->content = trim($fromform->question);
+        $data->userid = $USER->id;
+        $data->time = time();
+        if (isset($fromform->anonymous) && $fromform->anonymous && $this->hotquestion->anonymouspost) {
+            $data->anonymous = $fromform->anonymous;
+            // Assume this user is guest
+            $data->userid = $CFG->siteguest;
+        }
+        if (!empty($data->content)) {
+            $DB->insert_record('hotquestion_questions', $data);
+            add_to_log($course->id, "hotquestion", "add question", "view.php?id=$cm->id", $data->content, $cm->id);
+	    return true;
+        } else {
+            return false;
+        }
+>>>>>>> ffdb382... enclose all database related functions into a class
+    }
+
+<<<<<<< HEAD
+/**
+ * Handle new vote on question,insert it into database
+ *
+ * @global object
+ * @global object
+ * @param object $course
+ * @param object $cm
+ * @param int $q which is the question id
+ */
+function handle_vote($course, $cm, $q){
+    global $DB, $USER;
+    $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
+    if ($question && $USER->id != $question->userid) {
+        add_to_log($course->id, 'hotquestion', 'update vote', "view.php?id=$cm->id", $q, $cm->id);
+        if (!has_voted($q)) {
+            $votes->question = $q;
+            $votes->voter = $USER->id;
+            if (!$DB->insert_record('hotquestion_votes', $votes)) {
+                error("error in inserting the votes!");
+	    }
+        } else { 
+              delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id);
+	} 
+    }
 }
+
+/**
+ * Open a new round and close the old one
+ *
+ * @global object
+ * @param object $hotquestion
+ * @param object $cm
+ */
+function new_round($hotquestion, $cm) {
+    global $DB;
+    // Close the latest round
+    $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$hotquestion->id), 'id DESC', '*', 0, 1));
+    $old->endtime = time();
+    $DB->update_record('hotquestion_rounds', $old);
+    // Open a new round
+    $new->hotquestion = $hotquestion->id;
+    $new->starttime = time();
+    $new->endtime = 0;
+    $rid = $DB->insert_record('hotquestion_rounds', $new);
+    add_to_log($course->id, 'hotquestion', 'add round', "view.php?id=$cm->id&round=$rid", $rid, $cm->id);
+}
+
+/**
+ * Select exist rounds from database and set $current_round, $pre_round, $next_round
+ *
+ * @global object
+ * @param object $hotquestion
+ * @param int $roundid
+ * @param ref &$current_round, which is the reference of $current_round
+ * @param ref &$prev_round
+ * @param ref $next_round
+ */
+function lookfor_rounds($hotquestion, $roundid, &$current_round, &$prev_round, &$next_round) {
+    global $DB;
+    $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $hotquestion->id), 'id ASC');
+    if (empty($rounds)) {
+        // Create the first round
+        $round->starttime = time();
+        $round->endtime = 0;
+        $round->hotquestion = $hotquestion->id;
+        $round->id = $DB->insert_record('hotquestion_rounds', $round);
+        $rounds[] = $round;
+=======
+    /**
+     * Handle new vote on question,insert it into database
+     *
+     * @global object
+     * @global object
+     * @param object $course
+     * @param object $cm
+     * @param int $q which is the question id
+     */
+    function add_vote($q, $cm, $course) {
+        global $DB, $USER;
+        $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
+        if ($question && $USER->id != $question->userid) {
+            add_to_log($course->id, 'hotquestion', 'update vote', "view.php?id=$cm->id", $q, $cm->id);
+            if (!$this->has_voted($q)) {
+                $votes->question = $q;
+                $votes->voter = $USER->id;
+                if (!$DB->insert_record('hotquestion_votes', $votes)) {
+                    error("error in inserting the votes!");
+	        }
+            } else { 
+                //delete_records('hotquestion_votes', 'question', $q, 'voter', $USER->id);
+            } 
+        }
+    }
+
+    /**
+     * Open a new round and close the old one
+     *
+     * @global object
+     * @param object $hotquestion
+     * @param object $cm
+     */
+    function add_round($course, $cm) {
+        global $DB;
+        // Close the latest round
+        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->hotquestion->id), 'id DESC', '*', 0, 1));
+        $old->endtime = time();
+        $DB->update_record('hotquestion_rounds', $old);
+        // Open a new round
+        $new->hotquestion = $this->hotquestion->id;
+        $new->starttime = time();
+        $new->endtime = 0;
+        $rid = $DB->insert_record('hotquestion_rounds', $new);
+        add_to_log($course->id, 'hotquestion', 'add round', "view.php?id=$cm->id&round=$rid", $rid, $cm->id);
+>>>>>>> ffdb382... enclose all database related functions into a class
+    }
+
+    /**
+     * Select exist rounds from database and set $current_round, $pre_round, $next_round
+     *
+     * @global object
+     * @param object $hotquestion
+     * @param int $roundid
+     * @param ref &$current_round, which is the reference of $current_round
+     * @param ref &$prev_round
+     * @param ref $next_round
+    */
+    function search_rounds($roundid, &$current_round, &$prev_round, &$next_round) {
+        global $DB;
+        $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->hotquestion->id), 'id ASC');
+        if (empty($rounds)) {
+            // Create the first round
+            $round->starttime = time();
+            $round->endtime = 0;
+            $round->hotquestion = $this->hotquestion->id;
+            $round->id = $DB->insert_record('hotquestion_rounds', $round);
+            $rounds[] = $round;
+        }
+        $ids = array_keys($rounds);
+        if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
+	    // Search by $roundid;
+            $current_round = $rounds[$roundid];
+            $current_key = array_search($roundid, $ids);
+            if (array_key_exists($current_key-1, $ids)) {
+	        $prev_round = $rounds[$ids[$current_key-1]];
+            }
+            if (array_key_exists($current_key+1, $ids)) {
+	        $next_round = $rounds[$ids[$current_key+1]];
+            }
+            $roundnum = $current_key+1;
+        } else {
+            // Use the last round
+            $current_round = array_pop($rounds);
+            $prev_round = array_pop($rounds);
+            $roundnum = array_search($current_round->id, $ids) + 1;
+        }
+    }
+<<<<<<< HEAD
+}
+
+/**
+ * Search questions from database according to $current_round and $hotquestion
+ *
+ * @global object
+ * @global object
+ * @param object $hotquestion
+ * @param int $current_round
+ * @param ref &$questions,which is the reference of $questions  
+ */
+function search_questions($hotquestion, $current_round, &$questions) {
+    global $DB, $CFG;
+    $questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
+=======
+
+    /**
+     * Search questions from database according to $current_round and $hotquestion
+     *
+     * @global object
+     * @global object
+     * @param object $hotquestion
+     * @param int $current_round
+     * @param ref &$questions,which is the reference of $questions  
+     */
+    function search_questions($hotquestion, $current_round, &$questions) {
+        global $DB, $CFG;
+        $questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
+>>>>>>> ffdb382... enclose all database related functions into a class
+	      FROM {$CFG->prefix}hotquestion_questions q
+	      LEFT JOIN {$CFG->prefix}hotquestion_votes v
+	      ON v.question = q.id
+	      WHERE q.hotquestion = $hotquestion->id
+		    AND q.time >= {$current_round->starttime}
+		    AND q.time <= {$current_round->endtime}
+	      GROUP BY q.id
+	      ORDER BY votecount DESC, q.time DESC");
+<<<<<<< HEAD
+}
+
+=======
+    }
+}
+>>>>>>> ffdb382... enclose all database related functions into a class
