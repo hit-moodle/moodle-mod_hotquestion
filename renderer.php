@@ -23,10 +23,39 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class mod_hotquestion_renderer extends plugin_renderer_base {
+<<<<<<< HEAD
     public $current_round;
     public $next_round;
     public $pre_round;    
     
+=======
+    private $current_round;
+    private $next_round;
+    private $pre_round;    
+    private $hotquestion;
+    private $cm;
+    private $context;
+    private $course;    
+    private $db_action;
+
+    /**
+     * Initialise internal objects.
+     *
+     * @param object $hotquestion
+     * @param object $cm
+     * @param object $context
+     * @param object $course
+     * @param object $db_action
+     */
+    function init($hotquestion, $cm, $context, $course, $db_action) {
+        $this->hotquestion = $hotquestion;
+        $this->cm = $cm;
+        $this->context = $context;
+        $this->course = $course;
+        $this->db_action = $db_action;
+    }
+
+>>>>>>> ffdb382... enclose all database related functions into a class
     /**
      * This function print the hotquestion introduction 
      *
@@ -34,11 +63,19 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param object $hotquestion
      * @param object $cm
      */
+<<<<<<< HEAD
     function hotquestion_intro($hotquestion, $cm) {
 	global $OUTPUT;
  	echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
 	echo format_module_intro('hotquestion', $hotquestion, $cm->id);
 	echo $OUTPUT->box_end();
+=======
+    function introduction() {
+        global $OUTPUT;
+        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
+        echo format_module_intro('hotquestion', $this->hotquestion, $this->cm->id);
+        echo $OUTPUT->box_end();
+>>>>>>> ffdb382... enclose all database related functions into a class
     } 
 
     /**
@@ -51,6 +88,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param int roundid
      * return alist of links
      */
+<<<<<<< HEAD
     function toolbuttons($cm, $context, $hotquestion, $roundid) {
 	global $OUTPUT;
 	$output = '';
@@ -85,6 +123,42 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 	// Print refresh button
 	$url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$cm->id));
 	$toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
+=======
+    function toolbuttons($roundid) {
+        global $OUTPUT;
+        $output = '';
+        $toolbuttons = array();
+
+        //  Find out existed rounds
+        $this->db_action->search_rounds($roundid, $this->current_round, $this->prev_round, $this->next_round);
+
+        //  Print next/prev round bar
+        if (!empty($this->prev_round)) {
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id, 'round'=>$this->prev_round->id));
+            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
+        } else {
+            $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
+        }
+        if (!empty($this->next_round)) {
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id, 'round'=>$this->next_round->id));
+            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
+        } else {
+            $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
+        }
+
+        // Print new round bar
+        if (has_capability('mod/hotquestion:manage', $this->context)) {
+            $options = array();
+            $options['id'] = $this->cm->id;
+            $options['action'] = 'newround';
+            $url = new moodle_url('/mod/hotquestion/view.php', $options);
+            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/add', get_string('newround', 'hotquestion')), array('class' => 'toolbutton'));
+        }
+
+        // Print refresh button
+        $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id));
+        $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
+>>>>>>> ffdb382... enclose all database related functions into a class
 	
 	// return all available toolbuttons
 	$output .= html_writer::alist($toolbuttons, array('id' => 'toolbar'));   
@@ -104,6 +178,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param object $context
      * return table of questionlist
      */
+<<<<<<< HEAD
     function display_questionlist($hotquestion, $cm, $course, $context) {
 	global $DB, $CFG, $OUTPUT, $USER;	
 	$output = '';
@@ -147,6 +222,52 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
 	    }
 	    $output .= html_writer::table($table);
 	    return $output;	
+=======
+    function display_questionlist() {
+        global $DB, $CFG, $OUTPUT, $USER;	
+        $output = '';
+        if ($this->current_round->endtime == 0) {
+            $this->current_round->endtime = 0xFFFFFFFF;  //Hack
+        }
+
+	// Search questions in current round
+        $this->db_action->search_questions($this->hotquestion, $this->current_round, $questions);	
+        if ($questions) {
+            $table = new html_table();
+            $table->cellpadding = 10;
+            $table->class = 'generaltable';
+            $table->width = '100%';
+            $table->align = array ('left', 'center');
+            $table->head = array(get_string('question', 'hotquestion'), get_string('heat', 'hotquestion'));
+
+            foreach ($questions as $question) {
+                $line = array();
+                $formatoptions->para  = false;
+                $content = format_text($question->content, FORMAT_MOODLE, $formatoptions);
+                $user = $DB->get_record('user', array('id'=>$question->userid));
+
+                if ($question->anonymous) {
+                    $a->user = get_string('anonymous', 'hotquestion');
+                } else {
+                    $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $this->course->id . '">' . fullname($user) . '</a>';
+                }
+                $a->time = userdate($question->time).'&nbsp('.get_string('early', 'assignment', format_time(time() - $question->time)) . ')';
+                $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
+                $line[] = $content.$info;
+                $heat = $question->votecount;
+
+                // Print the vote cron
+                if (has_capability('mod/hotquestion:vote', $this->context) && $question->userid != $USER->id){
+                    if (!$this->db_action->has_voted($question->id)){
+                        $heat .= '&nbsp;<a href="view.php?id='.$this->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$OUTPUT->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
+                    }
+                }
+                $line[] = $heat;
+                $table->data[] = $line;
+            }
+            $output .= html_writer::table($table);
+            return $output;	
+>>>>>>> ffdb382... enclose all database related functions into a class
         }
         else {
 	    $output .= box(get_string('noquestions', 'hotquestion'), 'center', '70%');

@@ -85,8 +85,18 @@ $output = $PAGE->get_renderer('mod_hotquestion');
 // Process submited question
 if (has_capability('mod/hotquestion:ask', $context)) {
     $mform = new hotquestion_form(null, $hotquestion->anonymouspost);
+<<<<<<< HEAD
     if ($fromform=$mform->get_data()){
         handle_question($fromform, $hotquestion, $course, $cm);
+=======
+    if ($fromform=$mform->get_data()) {
+        if (!$db_action->add_question($course, $cm, $fromform)) {
+            redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+        }
+        if (!$ajax) {
+            redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+        }
+>>>>>>> ffdb382... enclose all database related functions into a class
     }
 }
 
@@ -94,6 +104,7 @@ if (has_capability('mod/hotquestion:ask', $context)) {
 if (!empty($action)) {
     switch ($action) {
         case 'vote':
+<<<<<<< HEAD
 	    if(has_capability('mod/hotquestion:vote', $context)) {
 	        handle_vote($course, $cm, $q);
 	    }
@@ -102,6 +113,16 @@ if (!empty($action)) {
 	    if(has_capability('mod/hotquestion:manage', $context)) {
 	        new_round($hotquestion, $cm);
 	    }
+=======
+            if (has_capability('mod/hotquestion:vote', $context)) {
+                $db_action->add_vote($q, $cm, $course);
+            }
+            break;
+        case 'newround':
+           if (has_capability('mod/hotquestion:manage', $context)) {
+                $db_action->add_round($course, $cm);
+            }
+>>>>>>> ffdb382... enclose all database related functions into a class
 	    break;
     }
 }
@@ -111,7 +132,11 @@ if (!$ajax){
     echo $output->header();
     // Print hotquestion description 
     if (trim($hotquestion->intro)) {
+<<<<<<< HEAD
 	$output->hotquestion_intro($hotquestion, $cm);
+=======
+        $output->introduction();
+>>>>>>> ffdb382... enclose all database related functions into a class
     }
     // Print ask form
     if (has_capability('mod/hotquestion:ask', $context)) {
@@ -122,11 +147,11 @@ if (!$ajax){
 echo $output->container_start(null, 'questions_list');
 // Print toolbar
 echo $output->container_start("toolbar");
-echo $output->toolbuttons($cm, $context, $hotquestion, $roundid);
+echo $output->toolbuttons($roundid);
 echo $output->container_end();
 
 // Print questions list
-echo $output->display_questionlist($hotquestion, $cm, $course, $context);
+echo $output->display_questionlist();
 echo $output->container_end();
 
 add_to_log($course->id, "hotquestion", "view", "view.php?id=$cm->id&round=$roundid", $roundid, $cm->id);
