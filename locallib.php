@@ -29,7 +29,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class mod_hotquestion_db_operation {
+class mod_hotquestion {
     private $hotquestion;
     private $cm;
     private $context;

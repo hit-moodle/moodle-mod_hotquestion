@@ -81,7 +81,7 @@ require_capability('mod/hotquestion:view', $context);
 
 // Get local renderer
 $output = $PAGE->get_renderer('mod_hotquestion');
-$db_action = new mod_hotquestion_db_operation($hotquestion, $cm, $context, $course);
+$db_action = new mod_hotquestion($hotquestion, $cm, $context, $course);
 $output->init($hotquestion, $cm, $context, $course, $db_action);
 
 // Process submited question
