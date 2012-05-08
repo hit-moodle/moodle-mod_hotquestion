@@ -27,11 +27,11 @@ defined('MOODLE_INTERNAL') || die();
 class mod_hotquestion_renderer extends plugin_renderer_base {
     private $current_round;
     private $next_round;
-    private $pre_round;    
+    private $pre_round;
     private $hotquestion;
     private $cm;
     private $context;
-    private $course;    
+    private $course;
     private $db_action;
 
     /**
@@ -52,7 +52,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     }
 
     /**
-     * This function print the hotquestion introduction 
+     * This function print the hotquestion introduction
      *
      * @global object
      * @param object $hotquestion
@@ -63,10 +63,10 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
         echo format_module_intro('hotquestion', $this->hotquestion, $this->cm->id);
         echo $OUTPUT->box_end();
-    } 
+    }
 
     /**
-     * This function print the toolbuttons for questionlist 
+     * This function print the toolbuttons for questionlist
      *
      * @global object
      * @param object $cm
@@ -111,12 +111,13 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
 	
         // return all available toolbuttons
-        $output .= html_writer::alist($toolbuttons, array('id' => 'toolbar'));   
+        $output .= html_writer::alist($toolbuttons, array('id' => 'toolbar'));
         return $output;
     }
 
     /**
-     * This function search existed questions, and print it in a question list, which include the question content, the author,the time      * and the heat, if the user has capability of vote, it will display a icron of vote
+     * This function search existed questions, and print it in a question list, which include the question content, the author,the time
+     * and the heat, if the user has capability of vote, it will display a icron of vote
      *
      * @global object
      * @global object
@@ -135,7 +136,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
             $this->current_round->endtime = 0xFFFFFFFF;  //Hack
         }
 
-	// Search questions in current round
+        // Search questions in current round
         $this->db_action->search_questions($this->current_round, $questions);	
         if ($questions) {
             $table = new html_table();

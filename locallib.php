@@ -82,14 +82,14 @@ class mod_hotquestion_db_operation {
         if (!empty($data->content)) {
             $DB->insert_record('hotquestion_questions', $data);
             add_to_log($this->course->id, "hotquestion", "add question", "view.php?id={$this->cm->id}", $data->content, $this->cm->id);
-	    return true;
+            return true;
         } else {
             return false;
         }
     }
 
     /**
-     * Handle new vote on question,insert it into database
+     * Handle new vote on question, insert it into database
      *
      * @global object
      * @global object
@@ -107,7 +107,7 @@ class mod_hotquestion_db_operation {
                 $votes->voter = $USER->id;
                 if (!$DB->insert_record('hotquestion_votes', $votes)) {
                     error("error in inserting the votes!");
-	        }
+                }
             } else { 
                 $DB->delete_records('hotquestion_votes', array('question'=> $q, 'voter'=>$USER->id));
             } 
@@ -158,14 +158,14 @@ class mod_hotquestion_db_operation {
         }
         $ids = array_keys($rounds);
         if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
-	    // Search by $roundid;
+            // Search by $roundid;
             $current_round = $rounds[$roundid];
             $current_key = array_search($roundid, $ids);
             if (array_key_exists($current_key-1, $ids)) {
-	        $prev_round = $rounds[$ids[$current_key-1]];
+                $prev_round = $rounds[$ids[$current_key-1]];
             }
             if (array_key_exists($current_key+1, $ids)) {
-	        $next_round = $rounds[$ids[$current_key+1]];
+                $next_round = $rounds[$ids[$current_key+1]];
             }
             $roundnum = $current_key+1;
         } else {

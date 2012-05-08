@@ -35,7 +35,7 @@ $id = optional_param('id', 0, PARAM_INT); // course_module ID
 $h  = optional_param('h', 0, PARAM_INT);  // hotquestion instance ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
-$roundid = optional_param('round', -1, PARAM_INT);  //round id 
+$roundid = optional_param('round', -1, PARAM_INT);  //round id
 $q = optional_param('q', 0, PARAM_INT);	//question id to vote
 
 // Get global params from $id or $h
@@ -57,7 +57,7 @@ add_to_log($course->id, 'hotquestion', 'view', "view.php?id=$cm->id", $hotquesti
 $context = get_context_instance(CONTEXT_MODULE, $cm->id);
 
 // Set page
-if (!$ajax){
+if (!$ajax) {
     $PAGE->set_url('/mod/hotquestion/view.php', array('id' => $cm->id));
     $PAGE->set_title($hotquestion->name);
     $PAGE->set_heading($course->shortname);
@@ -69,7 +69,7 @@ if (!$ajax){
         'name'     => 'mod_hotquestion',
         'fullpath' => '/mod/hotquestion/module.js',
         'requires' => array('base', 'io', 'node', 'event-valuechange'),
-        'strings' => array(
+        'strings'  => array(
             array('invalidquestion', 'hotquestion'),
             array('connectionerror', 'hotquestion')
         )
@@ -79,7 +79,7 @@ if (!$ajax){
 
 require_capability('mod/hotquestion:view', $context);
 
-// Get local renderer 
+// Get local renderer
 $output = $PAGE->get_renderer('mod_hotquestion');
 $db_action = new mod_hotquestion_db_operation($hotquestion, $cm, $context, $course);
 $output->init($hotquestion, $cm, $context, $course, $db_action);
@@ -116,13 +116,13 @@ if (!empty($action)) {
 // Start print page
 if (!$ajax){
     echo $output->header();
-    // Print hotquestion description 
+    // Print hotquestion description
     if (trim($hotquestion->intro)) {
         $output->introduction();
     }
     // Print ask form
     if (has_capability('mod/hotquestion:ask', $context)) {
-        $mform->display(); 
+        $mform->display();
     }
 }
 
