@@ -29,39 +29,25 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     private $next_round;
     private $pre_round;
     private $hotquestion;
-    private $cm;
-    private $context;
-    private $course;
-    private $db_action;
 
     /**
      * Initialise internal objects.
      *
      * @param object $hotquestion
-     * @param object $cm
-     * @param object $context
-     * @param object $course
-     * @param object $db_action
      */
-    function init($hotquestion, $cm, $context, $course, $db_action) {
+    function init($hotquestion) {
         $this->hotquestion = $hotquestion;
-        $this->cm = $cm;
-        $this->context = $context;
-        $this->course = $course;
-        $this->db_action = $db_action;
     }
 
     /**
      * This function print the hotquestion introduction
      *
      * @global object
-     * @param object $hotquestion
-     * @param object $cm
      */
     function introduction() {
         global $OUTPUT;
         echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        echo format_module_intro('hotquestion', $this->hotquestion, $this->cm->id);
+        echo format_module_intro('hotquestion', $this->hotquestion->instance, $this->hotquestion->cm->id);
         echo $OUTPUT->box_end();
     }
 
@@ -69,45 +55,43 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * This function print the toolbuttons for questionlist
      *
      * @global object
-     * @param object $cm
-     * @param object $context
-     * @param object $hotquestion
-     * @param int roundid
+     * @param int $roundid id of the round to show
+     * @param bool $show_new whether show "New round" button
      * return alist of links
      */
-    function toolbuttons($roundid) {
+    function toolbuttons($roundid, $show_new = true) {
         global $OUTPUT;
         $output = '';
         $toolbuttons = array();
 
         //  Find out existed rounds
-        $this->db_action->search_rounds($roundid, $this->current_round, $this->prev_round, $this->next_round);
+        $this->hotquestion->search_rounds($roundid, $this->current_round, $this->prev_round, $this->next_round);
 
         //  Print next/prev round bar
         if (!empty($this->prev_round)) {
-            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id, 'round'=>$this->prev_round->id));
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->prev_round->id));
             $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
             $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
         }
         if (!empty($this->next_round)) {
-            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id, 'round'=>$this->next_round->id));
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->next_round->id));
             $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
             $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
         }
 
         // Print new round bar
-        if (has_capability('mod/hotquestion:manage', $this->context)) {
+        if ($show_new) {
             $options = array();
-            $options['id'] = $this->cm->id;
+            $options['id'] = $this->hotquestion->cm->id;
             $options['action'] = 'newround';
             $url = new moodle_url('/mod/hotquestion/view.php', $options);
             $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/add', get_string('newround', 'hotquestion')), array('class' => 'toolbutton'));
         }
 
         // Print refresh button
-        $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->cm->id));
+        $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id));
         $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
 	
         // return all available toolbuttons
@@ -123,13 +107,10 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @global object
      * @global object
      * @global object
-     * @param object $hotquestion
-     * @param object $cm
-     * @param object $course
-     * @param object $context
+     * @param bool $can_vote whether current user has vote cap
      * return table of questionlist
      */
-    function display_questionlist() {
+    function display_questionlist($can_vote = true) {
         global $DB, $CFG, $OUTPUT, $USER;	
         $output = '';
         if ($this->current_round->endtime == 0) {
@@ -137,7 +118,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         }
 
         // Search questions in current round
-        $this->db_action->search_questions($this->current_round, $questions);	
+        $this->hotquestion->search_questions($this->current_round, $questions);	
         if ($questions) {
             $table = new html_table();
             $table->cellpadding = 10;
@@ -155,7 +136,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 if ($question->anonymous) {
                     $a->user = get_string('anonymous', 'hotquestion');
                 } else {
-                    $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $this->course->id . '">' . fullname($user) . '</a>';
+                    $a->user = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $user->id . '&amp;course=' . $this->hotquestion->course->id . '">' . fullname($user) . '</a>';
                 }
                 $a->time = userdate($question->time).'&nbsp('.get_string('early', 'assignment', format_time(time() - $question->time)) . ')';
                 $info = '<div class="author">'.get_string('authorinfo', 'hotquestion', $a).'</div>';
@@ -163,9 +144,9 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 $heat = $question->votecount;
 
                 // Print the vote cron
-                if (has_capability('mod/hotquestion:vote', $this->context) && $question->userid != $USER->id){
-                    if (!$this->db_action->has_voted($question->id)){
-                        $heat .= '&nbsp;<a href="view.php?id='.$this->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$OUTPUT->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
+                if ($can_vote && $question->userid != $USER->id){
+                    if (!$this->hotquestion->has_voted($question->id)){
+                        $heat .= '&nbsp;<a href="view.php?id='.$this->hotquestion->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$OUTPUT->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
                     }
                 }
                 $line[] = $heat;

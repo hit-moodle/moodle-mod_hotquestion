@@ -76,9 +76,9 @@ class mod_hotquestion_mod_form extends moodleform_mod {
 class hotquestion_form extends moodleform {
 
     function definition() {
-        global $CFG, $cm;
+        global $CFG;
 
-        $allow_anonymous = $this->_customdata;
+        list($allow_anonymous, $cm) = $this->_customdata;
 
         $mform =& $this->_form;
         $mform->addElement('textarea', 'question', get_string('inputquestion', 'hotquestion'), 'wrap="virtual" rows="3" cols="50"');

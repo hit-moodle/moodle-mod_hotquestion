@@ -30,16 +30,15 @@
 defined('MOODLE_INTERNAL') || die();
 
 class mod_hotquestion {
-    private $hotquestion;
-    private $cm;
-    private $context;
-    private $course;
+    public $instance;
+    public $cm;
+    public $course;
 
-    public function __construct($hotquestion, $cm, $context, $course) {
-        $this->hotquestion = $hotquestion;
-        $this->cm = $cm;
-        $this->context = $context;
-        $this->course = $course;
+    public function __construct($cmid) {
+        global $DB;
+        $this->cm        = get_coursemodule_from_id('hotquestion', $cmid, 0, false, MUST_EXIST);
+        $this->course    = $DB->get_record('course', array('id' => $this->cm->course), '*', MUST_EXIST);
+        $this->instance  = $DB->get_record('hotquestion', array('id' => $this->cm->instance), '*', MUST_EXIST);
     }
 
     /**
@@ -70,11 +69,11 @@ class mod_hotquestion {
      */
     function add_question($fromform) {
         global $USER, $CFG, $DB;
-        $data->hotquestion = $this->hotquestion->id;
+        $data->hotquestion = $this->instance->id;
         $data->content = trim($fromform->question);
         $data->userid = $USER->id;
         $data->time = time();
-        if (isset($fromform->anonymous) && $fromform->anonymous && $this->hotquestion->anonymouspost) {
+        if (isset($fromform->anonymous) && $fromform->anonymous && $this->instance->anonymouspost) {
             $data->anonymous = $fromform->anonymous;
             // Assume this user is guest
             $data->userid = $CFG->siteguest;
@@ -118,17 +117,15 @@ class mod_hotquestion {
      * Open a new round and close the old one
      *
      * @global object
-     * @param object $hotquestion
-     * @param object $cm
      */
     function add_round() {
         global $DB;
         // Close the latest round
-        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->hotquestion->id), 'id DESC', '*', 0, 1));
+        $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->instance->id), 'id DESC', '*', 0, 1));
         $old->endtime = time();
         $DB->update_record('hotquestion_rounds', $old);
         // Open a new round
-        $new->hotquestion = $this->hotquestion->id;
+        $new->hotquestion = $this->instance->id;
         $new->starttime = time();
         $new->endtime = 0;
         $rid = $DB->insert_record('hotquestion_rounds', $new);
@@ -147,12 +144,12 @@ class mod_hotquestion {
     */
     function search_rounds($roundid, &$current_round, &$prev_round, &$next_round) {
         global $DB;
-        $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->hotquestion->id), 'id ASC');
+        $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
         if (empty($rounds)) {
             // Create the first round
             $round->starttime = time();
             $round->endtime = 0;
-            $round->hotquestion = $this->hotquestion->id;
+            $round->hotquestion = $this->instance->id;
             $round->id = $DB->insert_record('hotquestion_rounds', $round);
             $rounds[] = $round;
         }
@@ -191,7 +188,7 @@ class mod_hotquestion {
 	      FROM {$CFG->prefix}hotquestion_questions q
 	      LEFT JOIN {$CFG->prefix}hotquestion_votes v
 	      ON v.question = q.id
-	      WHERE q.hotquestion = {$this->hotquestion->id}
+	      WHERE q.hotquestion = {$this->instance->id}
 		    AND q.time >= {$current_round->starttime}
 		    AND q.time <= {$current_round->endtime}
 	      GROUP BY q.id
