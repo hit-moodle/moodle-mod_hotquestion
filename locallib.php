@@ -171,21 +171,21 @@ class mod_hotquestion {
      * Return questions according to $current_round
      *
      * @global object
-     * @global object
      * @param object $hotquestion
      * @param int $current_round
      * @param ref &$questions,which is the reference of $questions  
      */
     function get_questions($current_round) {
-        global $DB, $CFG;
-        return $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
-	      FROM {$CFG->prefix}hotquestion_questions q
-	      LEFT JOIN {$CFG->prefix}hotquestion_votes v
-	      ON v.question = q.id
-	      WHERE q.hotquestion = {$this->instance->id}
-		    AND q.time >= {$current_round->starttime}
-		    AND q.time <= {$current_round->endtime}
-	      GROUP BY q.id
-	      ORDER BY votecount DESC, q.time DESC");
+        global $DB;
+        $params = array($this->instance->id, $current_round->starttime, $current_round->endtime);
+        return $DB->get_records_sql('SELECT q.*, count(v.voter) as votecount
+                                     FROM {hotquestion_questions} q
+                                         LEFT JOIN {hotquestion_votes} v
+                                         ON v.question = q.id
+                                     WHERE q.hotquestion = ?
+                                        AND q.time >= ?
+                                        AND q.time <= ?
+                                     GROUP BY q.id
+                                     ORDER BY votecount DESC, q.time DESC', $params);
     }
 }
