@@ -35,7 +35,6 @@ $id = optional_param('id', 0, PARAM_INT); // course_module ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
 $roundid = optional_param('round', -1, PARAM_INT);  //round id
-$q = optional_param('q', 0, PARAM_INT);	//question id to vote
 
 // Get global params from $id or $h
 if ($id) {
@@ -95,6 +94,7 @@ if (!empty($action)) {
     switch ($action) {
         case 'vote':
             if (has_capability('mod/hotquestion:vote', $context)) {
+                $q = required_param('q',  PARAM_INT);  //question id to vote
                 $hq->vote_on($q);
             }
             break;
