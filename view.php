@@ -81,7 +81,7 @@ $output->init($hq);
 if (has_capability('mod/hotquestion:ask', $context)) {
     $mform = new hotquestion_form(null, array($hq->instance->anonymouspost, $hq->cm));
     if ($fromform=$mform->get_data()) {
-        if (!$hq->add_question($fromform)) {
+        if (!$hq->add_new_question($fromform)) {
             redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
         }
         if (!$ajax) {
@@ -95,14 +95,14 @@ if (!empty($action)) {
     switch ($action) {
         case 'vote':
             if (has_capability('mod/hotquestion:vote', $context)) {
-                $hq->add_vote($q);
+                $hq->vote_on($q);
             }
             break;
         case 'newround':
-           if (has_capability('mod/hotquestion:manage', $context)) {
-                $hq->add_round();
+            if (has_capability('mod/hotquestion:manage', $context)) {
+                $hq->add_new_round();
             }
-	    break;
+            break;
     }
 }
 
