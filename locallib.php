@@ -104,9 +104,7 @@ class mod_hotquestion {
             if (!$this->has_voted($question->id)) {
                 $votes->question = $question->id;
                 $votes->voter = $USER->id;
-                if (!$DB->insert_record('hotquestion_votes', $votes)) {
-                    error("error in inserting the votes!");
-                }
+                $DB->insert_record('hotquestion_votes', $votes);
             } else { 
                 $DB->delete_records('hotquestion_votes', array('question'=> $question->id, 'voter'=>$USER->id));
             }
