@@ -36,13 +36,8 @@ $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
 $roundid = optional_param('round', -1, PARAM_INT);  //round id
 
-// Get global params from $id or $h
-if ($id) {
-    // Construct hotquestion instance
-    $hq = new mod_hotquestion($id, $roundid);
-} else {
-    error('You must specify a course_module ID or an instance ID');
-}
+// Construct hotquestion instance
+$hq = new mod_hotquestion($id, $roundid);
 
 // Confirm login
 require_login($hq->course, true, $hq->cm);
