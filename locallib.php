@@ -57,17 +57,14 @@ class mod_hotquestion {
     }
 
     /**
-     * Handle question submitted by user
+     * Add a new question to current round
      *
      * @global object
      * @global object
      * @global object
      * @param object $fromform from ask form
-     * @param object $hotquestion
-     * @param object $course
-     * @param object $cm
      */
-    function add_question($fromform) {
+    function add_new_question($fromform) {
         global $USER, $CFG, $DB;
         $data->hotquestion = $this->instance->id;
         $data->content = trim($fromform->question);
@@ -88,15 +85,13 @@ class mod_hotquestion {
     }
 
     /**
-     * Handle new vote on question, insert it into database
+     * Vote on question $q
      *
      * @global object
      * @global object
-     * @param object $course
-     * @param object $cm
-     * @param int $q which is the question id
+     * @param int $q the question id
      */
-    function add_vote($q) {
+    function vote_on($q) {
         global $DB, $USER;
         $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
         if ($question && $USER->id != $question->userid) {
@@ -118,7 +113,7 @@ class mod_hotquestion {
      *
      * @global object
      */
-    function add_round() {
+    function add_new_round() {
         global $DB;
         // Close the latest round
         $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->instance->id), 'id DESC', '*', 0, 1));
@@ -133,16 +128,15 @@ class mod_hotquestion {
     }
 
     /**
-     * Select exist rounds from database and set $current_round, $pre_round, $next_round
+     * Set $current_round, $pre_round, $next_round
      *
      * @global object
-     * @param object $hotquestion
      * @param int $roundid
-     * @param ref &$current_round, which is the reference of $current_round
-     * @param ref &$prev_round
+     * @param ref $current_round
+     * @param ref $prev_round
      * @param ref $next_round
     */
-    function search_rounds($roundid, &$current_round, &$prev_round, &$next_round) {
+    function set_current_round($roundid, &$current_round, &$prev_round, &$next_round) {
         global $DB;
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
         if (empty($rounds)) {
@@ -174,7 +168,7 @@ class mod_hotquestion {
     }
 
     /**
-     * Search questions from database according to $current_round and $hotquestion
+     * Return questions according to $current_round
      *
      * @global object
      * @global object
@@ -182,9 +176,9 @@ class mod_hotquestion {
      * @param int $current_round
      * @param ref &$questions,which is the reference of $questions  
      */
-    function search_questions($current_round, &$questions) {
+    function get_questions($current_round) {
         global $DB, $CFG;
-        $questions = $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
+        return $DB->get_records_sql("SELECT q.*, count(v.voter) as votecount
 	      FROM {$CFG->prefix}hotquestion_questions q
 	      LEFT JOIN {$CFG->prefix}hotquestion_votes v
 	      ON v.question = q.id

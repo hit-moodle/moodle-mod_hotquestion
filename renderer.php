@@ -64,7 +64,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         $toolbuttons = array();
 
         //  Find out existed rounds
-        $this->hotquestion->search_rounds($roundid, $this->current_round, $this->prev_round, $this->next_round);
+        $this->hotquestion->set_current_round($roundid, $this->current_round, $this->prev_round, $this->next_round);
 
         //  Print next/prev round bar
         if (!empty($this->prev_round)) {
@@ -118,7 +118,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         }
 
         // Search questions in current round
-        $this->hotquestion->search_questions($this->current_round, $questions);	
+        $questions = $this->hotquestion->get_questions($this->current_round);	
         if ($questions) {
             $table = new html_table();
             $table->cellpadding = 10;
