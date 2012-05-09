@@ -127,8 +127,6 @@ echo $output->container_end();
 echo $output->questions(has_capability('mod/hotquestion:vote', $context));
 echo $output->container_end();
 
-add_to_log($hq->course->id, "hotquestion", "view", "view.php?id={$hq->cm->id}&round=$roundid", $roundid, $hq->cm->id);
-
 // Finish the page
 if (!$ajax){
     echo $output->footer();
