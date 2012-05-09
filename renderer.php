@@ -40,27 +40,26 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     }
 
     /**
-     * This function print the hotquestion introduction
-     *
-     * @global object
+     * Return introduction
      */
     function introduction() {
-        global $OUTPUT;
-        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        echo format_module_intro('hotquestion', $this->hotquestion->instance, $this->hotquestion->cm->id);
-        echo $OUTPUT->box_end();
+        $output = '';
+        if (trim($this->hotquestion->instance->intro)) {
+            $output .= $this->box_start('generalbox boxaligncenter', 'intro');
+            $output .= format_module_intro('hotquestion', $this->hotquestion->instance, $this->hotquestion->cm->id);
+            $output .= $this->box_end();
+        }
+        return $output;
     }
 
     /**
-     * This function print the toolbuttons for questionlist
+     * Return the toolbar
      *
-     * @global object
      * @param int $roundid id of the round to show
      * @param bool $show_new whether show "New round" button
      * return alist of links
      */
     function toolbar($roundid, $show_new = true) {
-        global $OUTPUT;
         $output = '';
         $toolbuttons = array();
 
@@ -70,15 +69,15 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
         //  Print next/prev round bar
         if (!empty($this->prev_round)) {
             $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->prev_round->id));
-            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
+            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
-            $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
+            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
         }
         if (!empty($this->next_round)) {
             $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->next_round->id));
-            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
+            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
-            $toolbuttons[] = html_writer::tag('span', $OUTPUT->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
+            $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
         }
 
         // Print new round bar
@@ -87,12 +86,12 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
             $options['id'] = $this->hotquestion->cm->id;
             $options['action'] = 'newround';
             $url = new moodle_url('/mod/hotquestion/view.php', $options);
-            $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/add', get_string('newround', 'hotquestion')), array('class' => 'toolbutton'));
+            $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/add', get_string('newround', 'hotquestion')), array('class' => 'toolbutton'));
         }
 
         // Print refresh button
         $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id));
-        $toolbuttons[] = html_writer::link($url, $OUTPUT->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
+        $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/reload', get_string('reload')), array('class' => 'toolbutton'));
 	
         // return all available toolbuttons
         $output .= html_writer::alist($toolbuttons, array('id' => 'toolbar'));
@@ -100,18 +99,19 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     }
 
     /**
-     * This function search existed questions, and print it in a question list, which include the question content, the author,the time
-     * and the heat, if the user has capability of vote, it will display a icron of vote
+     * Return all questions in current list
      *
-     * @global object
+     * Return question list, which includes the content, the author, the time
+     * and the heat. If $can_vote is true, will display a icon of vote
+     *
      * @global object
      * @global object
      * @global object
      * @param bool $can_vote whether current user has vote cap
      * return table of questionlist
      */
-    function display_questionlist($can_vote = true) {
-        global $DB, $CFG, $OUTPUT, $USER;	
+    function questions($can_vote = true) {
+        global $DB, $CFG, $USER;
         $output = '';
         if ($this->current_round->endtime == 0) {
             $this->current_round->endtime = 0xFFFFFFFF;  //Hack
@@ -154,9 +154,8 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
             }
             $output .= html_writer::table($table);
             return $output;	
-        }
-        else {
-            $output .= $OUTPUT->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
+        } else {
+            $output .= $this->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
             return $output;
         }
         return $output;

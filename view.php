@@ -110,9 +110,7 @@ if (!empty($action)) {
 if (!$ajax){
     echo $output->header();
     // Print hotquestion description
-    if (trim($hq->instance->intro)) {
-        $output->introduction();
-    }
+    echo $output->introduction();
     // Print ask form
     if (has_capability('mod/hotquestion:ask', $context)) {
         $mform->display();
@@ -126,7 +124,7 @@ echo $output->toolbar($roundid, has_capability('mod/hotquestion:manage', $contex
 echo $output->container_end();
 
 // Print questions list
-echo $output->display_questionlist(has_capability('mod/hotquestion:vote', $context));
+echo $output->questions(has_capability('mod/hotquestion:vote', $context));
 echo $output->container_end();
 
 add_to_log($hq->course->id, "hotquestion", "view", "view.php?id={$hq->cm->id}&round=$roundid", $roundid, $hq->cm->id);
