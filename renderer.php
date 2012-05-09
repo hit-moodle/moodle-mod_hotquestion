@@ -32,14 +32,14 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      *
      * @param object $hotquestion
      */
-    function init($hotquestion) {
+    public function init($hotquestion) {
         $this->hotquestion = $hotquestion;
     }
 
     /**
      * Return introduction
      */
-    function introduction() {
+    public function introduction() {
         $output = '';
         if (trim($this->hotquestion->instance->intro)) {
             $output .= $this->box_start('generalbox boxaligncenter', 'intro');
@@ -55,7 +55,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param bool $show_new whether show "New round" button
      * return alist of links
      */
-    function toolbar($show_new = true) {
+    public function toolbar($show_new = true) {
         $output = '';
         $toolbuttons = array();
 
@@ -103,7 +103,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param bool $allow_vote whether current user has vote cap
      * return table of questionlist
      */
-    function questions($allow_vote = true) {
+    public function questions($allow_vote = true) {
         global $DB, $CFG, $USER;
         $output = '';
 

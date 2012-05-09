@@ -53,7 +53,7 @@ class mod_hotquestion {
      * @param int $user user id. -1 means current user
      * @return boolean
      */
-    function has_voted($question, $user = -1) {
+    public function has_voted($question, $user = -1) {
         global $USER, $DB;
         if ($user == -1) {
             $user = $USER->id;
@@ -69,7 +69,7 @@ class mod_hotquestion {
      * @global object
      * @param object $fromform from ask form
      */
-    function add_new_question($fromform) {
+    public function add_new_question($fromform) {
         global $USER, $CFG, $DB;
         $data->hotquestion = $this->instance->id;
         $data->content = trim($fromform->question);
@@ -96,7 +96,7 @@ class mod_hotquestion {
      * @global object
      * @param int $question the question id
      */
-    function vote_on($question) {
+    public function vote_on($question) {
         global $DB, $USER;
         $question = $DB->get_record('hotquestion_questions', array('id'=>$question));
         if ($question && $this->can_vote_on($question)) {
@@ -142,7 +142,7 @@ class mod_hotquestion {
      *
      * @global object
      */
-    function add_new_round() {
+    public function add_new_round() {
         global $DB;
         // Close the latest round
         $old = array_pop($DB->get_records('hotquestion_rounds', array('hotquestion'=>$this->instance->id), 'id DESC', '*', 0, 1));
@@ -162,7 +162,7 @@ class mod_hotquestion {
      * @global object
      * @param int $roundid
     */
-    function set_current_round($roundid = -1) {
+    public function set_current_round($roundid = -1) {
         global $DB;
 
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
@@ -205,7 +205,7 @@ class mod_hotquestion {
      *
      * @return object
      */
-    function get_current_round() {
+    public function get_current_round() {
         return $this->current_round;
     }
 
@@ -214,7 +214,7 @@ class mod_hotquestion {
      *
      * @return object
      */
-    function get_prev_round() {
+    public function get_prev_round() {
         return $this->prev_round;
     }
 
@@ -223,7 +223,7 @@ class mod_hotquestion {
      *
      * @return object
      */
-    function get_next_round() {
+    public function get_next_round() {
         return $this->next_round;
     }
 
@@ -233,7 +233,7 @@ class mod_hotquestion {
      * @global object
      * @return all questions with vote count in current round
      */
-    function get_questions() {
+    public function get_questions() {
         global $DB;
         if ($this->current_round->endtime == 0) {
             $this->current_round->endtime = 0xFFFFFFFF;  //Hack
