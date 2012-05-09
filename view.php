@@ -31,7 +31,7 @@ require_once(dirname(__FILE__).'/lib.php');
 require_once(dirname(__FILE__).'/locallib.php');
 require_once(dirname(__FILE__).'/mod_form.php');
 
-$id = optional_param('id', 0, PARAM_INT); // course_module ID
+$id = required_param('id', PARAM_INT); // course_module ID
 $ajax = optional_param('ajax', 0, PARAM_BOOL); // asychronous form request
 $action  = optional_param('action', '', PARAM_ACTION);  //action(vote,newround)
 $roundid = optional_param('round', -1, PARAM_INT);  //round id
