@@ -153,10 +153,8 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 $table->data[] = $line;
             }
             $output .= html_writer::table($table);
-            return $output;	
         } else {
             $output .= $this->box(get_string('noquestions', 'hotquestion'), 'center', '70%');
-            return $output;
         }
         return $output;
     }
