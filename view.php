@@ -122,7 +122,7 @@ if (!$ajax){
 echo $output->container_start(null, 'questions_list');
 // Print toolbar
 echo $output->container_start("toolbar");
-echo $output->toolbuttons($roundid, has_capability('mod/hotquestion:manage', $context));
+echo $output->toolbar($roundid, has_capability('mod/hotquestion:manage', $context));
 echo $output->container_end();
 
 // Print questions list

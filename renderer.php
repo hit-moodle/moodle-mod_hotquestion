@@ -59,7 +59,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @param bool $show_new whether show "New round" button
      * return alist of links
      */
-    function toolbuttons($roundid, $show_new = true) {
+    function toolbar($roundid, $show_new = true) {
         global $OUTPUT;
         $output = '';
         $toolbuttons = array();
