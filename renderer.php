@@ -25,9 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 class mod_hotquestion_renderer extends plugin_renderer_base {
-    private $current_round;
-    private $next_round;
-    private $pre_round;
     private $hotquestion;
 
     /**
@@ -55,26 +52,22 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     /**
      * Return the toolbar
      *
-     * @param int $roundid id of the round to show
      * @param bool $show_new whether show "New round" button
      * return alist of links
      */
-    function toolbar($roundid, $show_new = true) {
+    function toolbar($show_new = true) {
         $output = '';
         $toolbuttons = array();
 
-        //  Find out existed rounds
-        $this->hotquestion->set_current_round($roundid, $this->current_round, $this->prev_round, $this->next_round);
-
         //  Print next/prev round bar
-        if (!empty($this->prev_round)) {
-            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->prev_round->id));
+        if ($this->hotquestion->get_prev_round() != null) {
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->hotquestion->get_prev_round()->id));
             $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed_rtl', get_string('previousround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
             $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty_rtl', ''), array('class' => 'dis_toolbutton'));
         }
-        if (!empty($this->next_round)) {
-            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->next_round->id));
+        if ($this->hotquestion->get_next_round() != null) {
+            $url = new moodle_url('/mod/hotquestion/view.php', array('id'=>$this->hotquestion->cm->id, 'round'=>$this->hotquestion->get_next_round()->id));
             $toolbuttons[] = html_writer::link($url, $this->pix_icon('t/collapsed', get_string('nextround', 'hotquestion')), array('class' => 'toolbutton'));
         } else {
             $toolbuttons[] = html_writer::tag('span', $this->pix_icon('t/collapsed_empty', ''), array('class' => 'dis_toolbutton'));
@@ -113,12 +106,9 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
     function questions($can_vote = true) {
         global $DB, $CFG, $USER;
         $output = '';
-        if ($this->current_round->endtime == 0) {
-            $this->current_round->endtime = 0xFFFFFFFF;  //Hack
-        }
 
         // Search questions in current round
-        $questions = $this->hotquestion->get_questions($this->current_round);	
+        $questions = $this->hotquestion->get_questions();
         if ($questions) {
             $table = new html_table();
             $table->cellpadding = 10;

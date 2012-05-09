@@ -40,7 +40,7 @@ $q = optional_param('q', 0, PARAM_INT);	//question id to vote
 // Get global params from $id or $h
 if ($id) {
     // Construct hotquestion instance
-    $hq = new mod_hotquestion($id);
+    $hq = new mod_hotquestion($id, $roundid);
 } else {
     error('You must specify a course_module ID or an instance ID');
 }
@@ -120,7 +120,7 @@ if (!$ajax){
 echo $output->container_start(null, 'questions_list');
 // Print toolbar
 echo $output->container_start("toolbar");
-echo $output->toolbar($roundid, has_capability('mod/hotquestion:manage', $context));
+echo $output->toolbar(has_capability('mod/hotquestion:manage', $context));
 echo $output->container_end();
 
 // Print questions list

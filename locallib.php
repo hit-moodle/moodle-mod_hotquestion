@@ -34,11 +34,16 @@ class mod_hotquestion {
     public $cm;
     public $course;
 
-    public function __construct($cmid) {
+    protected $current_round;
+    protected $prev_round;
+    protected $next_round;
+
+    public function __construct($cmid, $roundid = -1) {
         global $DB;
         $this->cm        = get_coursemodule_from_id('hotquestion', $cmid, 0, false, MUST_EXIST);
         $this->course    = $DB->get_record('course', array('id' => $this->cm->course), '*', MUST_EXIST);
         $this->instance  = $DB->get_record('hotquestion', array('id' => $this->cm->instance), '*', MUST_EXIST);
+        $this->set_current_round($roundid);
     }
 
     /**
@@ -128,16 +133,14 @@ class mod_hotquestion {
     }
 
     /**
-     * Set $current_round, $pre_round, $next_round
+     * Set current round to show
      *
      * @global object
      * @param int $roundid
-     * @param ref $current_round
-     * @param ref $prev_round
-     * @param ref $next_round
     */
-    function set_current_round($roundid, &$current_round, &$prev_round, &$next_round) {
+    function set_current_round($roundid = -1) {
         global $DB;
+
         $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id ASC');
         if (empty($rounds)) {
             // Create the first round
@@ -147,37 +150,71 @@ class mod_hotquestion {
             $round->id = $DB->insert_record('hotquestion_rounds', $round);
             $rounds[] = $round;
         }
-        $ids = array_keys($rounds);
+
         if ($roundid != -1 && array_key_exists($roundid, $rounds)) {
-            // Search by $roundid;
-            $current_round = $rounds[$roundid];
+            $this->current_round = $rounds[$roundid];
+
+            $ids = array_keys($rounds);
+            // Search previous round
             $current_key = array_search($roundid, $ids);
-            if (array_key_exists($current_key-1, $ids)) {
-                $prev_round = $rounds[$ids[$current_key-1]];
+            if (array_key_exists($current_key - 1, $ids)) {
+                $this->prev_round = $rounds[$ids[$current_key - 1]];
+            } else {
+                $this->prev_round = null;
             }
-            if (array_key_exists($current_key+1, $ids)) {
-                $next_round = $rounds[$ids[$current_key+1]];
+            // Search next round
+            if (array_key_exists($current_key + 1, $ids)) {
+                $this->next_round = $rounds[$ids[$current_key + 1]];
+            } else {
+                $this->next_round = null;
             }
-            $roundnum = $current_key+1;
         } else {
             // Use the last round
-            $current_round = array_pop($rounds);
-            $prev_round = array_pop($rounds);
-            $roundnum = array_search($current_round->id, $ids) + 1;
+            $this->current_round = array_pop($rounds);
+            $this->prev_round = array_pop($rounds);
+            $this->next_round = null;
         }
+    }
+
+    /**
+     * Return current round
+     *
+     * @return object
+     */
+    function get_current_round() {
+        return $this->current_round;
+    }
+
+    /**
+     * Return previous round
+     *
+     * @return object
+     */
+    function get_prev_round() {
+        return $this->prev_round;
+    }
+
+    /**
+     * Return next round
+     *
+     * @return object
+     */
+    function get_next_round() {
+        return $this->next_round;
     }
 
     /**
      * Return questions according to $current_round
      *
      * @global object
-     * @param object $hotquestion
-     * @param int $current_round
-     * @param ref &$questions,which is the reference of $questions  
+     * @return all questions with vote count in current round
      */
-    function get_questions($current_round) {
+    function get_questions() {
         global $DB;
-        $params = array($this->instance->id, $current_round->starttime, $current_round->endtime);
+        if ($this->current_round->endtime == 0) {
+            $this->current_round->endtime = 0xFFFFFFFF;  //Hack
+        }
+        $params = array($this->instance->id, $this->current_round->starttime, $this->current_round->endtime);
         return $DB->get_records_sql('SELECT q.*, count(v.voter) as votecount
                                      FROM {hotquestion_questions} q
                                          LEFT JOIN {hotquestion_votes} v
