@@ -100,10 +100,10 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
      * @global object
      * @global object
      * @global object
-     * @param bool $can_vote whether current user has vote cap
+     * @param bool $allow_vote whether current user has vote cap
      * return table of questionlist
      */
-    function questions($can_vote = true) {
+    function questions($allow_vote = true) {
         global $DB, $CFG, $USER;
         $output = '';
 
@@ -134,7 +134,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 $heat = $question->votecount;
 
                 // Print the vote cron
-                if ($can_vote && $question->userid != $USER->id){
+                if ($allow_vote && $this->hotquestion->can_vote_on($question)){
                     if (!$this->hotquestion->has_voted($question->id)){
                         $heat .= '&nbsp;<a href="view.php?id='.$this->hotquestion->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$this->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
                     }

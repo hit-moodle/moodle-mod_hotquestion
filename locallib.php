@@ -90,27 +90,51 @@ class mod_hotquestion {
     }
 
     /**
-     * Vote on question $q
+     * Vote on question
      *
      * @global object
      * @global object
-     * @param int $q the question id
+     * @param int $question the question id
      */
-    function vote_on($q) {
+    function vote_on($question) {
         global $DB, $USER;
-        $question = $DB->get_record('hotquestion_questions', array('id'=>$q));
-        if ($question && $USER->id != $question->userid) {
-            add_to_log($this->course->id, 'hotquestion', 'update vote', "view.php?id={$this->cm->id}", $q, $this->cm->id);
-            if (!$this->has_voted($q)) {
-                $votes->question = $q;
+        $question = $DB->get_record('hotquestion_questions', array('id'=>$question));
+        if ($question && $this->can_vote_on($question)) {
+            add_to_log($this->course->id, 'hotquestion', 'update vote', "view.php?id={$this->cm->id}", $question->id, $this->cm->id);
+            if (!$this->has_voted($question->id)) {
+                $votes->question = $question->id;
                 $votes->voter = $USER->id;
                 if (!$DB->insert_record('hotquestion_votes', $votes)) {
                     error("error in inserting the votes!");
                 }
             } else { 
-                $DB->delete_records('hotquestion_votes', array('question'=> $q, 'voter'=>$USER->id));
-            } 
+                $DB->delete_records('hotquestion_votes', array('question'=> $question->id, 'voter'=>$USER->id));
+            }
         }
+    }
+
+    /**
+     * Whether can vote on the question
+     *
+     * @param object or int $question
+     * @param object $user null means current user
+     */
+    public function can_vote_on($question, $user = null) {
+        global $USER, $DB;
+
+        if (is_int($question)) {
+            $question = $DB->get_record('hotquestion_questions', array('id'=>$question));
+        }
+        if (empty($user)) {
+            $user = $USER;
+        }
+
+        // Is this question in last round?
+        $rounds = $DB->get_records('hotquestion_rounds', array('hotquestion' => $this->instance->id), 'id DESC', '*', 0, 1);
+        $lastround = reset($rounds);
+        $in_last_round = $question->time >= $lastround->starttime;
+
+        return $question->userid != $user->id && $in_last_round;
     }
 
     /**
