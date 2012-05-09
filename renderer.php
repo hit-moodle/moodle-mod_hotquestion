@@ -146,7 +146,7 @@ class mod_hotquestion_renderer extends plugin_renderer_base {
                 // Print the vote cron
                 if ($can_vote && $question->userid != $USER->id){
                     if (!$this->hotquestion->has_voted($question->id)){
-                        $heat .= '&nbsp;<a href="view.php?id='.$this->hotquestion->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$OUTPUT->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
+                        $heat .= '&nbsp;<a href="view.php?id='.$this->hotquestion->cm->id.'&action=vote&q='.$question->id.'" class="hotquestion_vote" id="question_'.$question->id.'"><img src="'.$this->pix_url('s/yes').'" title="'.get_string('vote', 'hotquestion') .'" alt="'. get_string('vote', 'hotquestion') .'"/></a>';
                     }
                 }
                 $line[] = $heat;
