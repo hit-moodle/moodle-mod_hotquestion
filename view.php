@@ -76,10 +76,10 @@ if (has_capability('mod/hotquestion:ask', $context)) {
     $mform = new hotquestion_form(null, array($hq->instance->anonymouspost, $hq->cm));
     if ($fromform=$mform->get_data()) {
         if (!$hq->add_new_question($fromform)) {
-            redirect('view.php?id='.$cm->id, get_string('invalidquestion', 'hotquestion'));
+            redirect('view.php?id='.$hq->cm->id, get_string('invalidquestion', 'hotquestion'));
         }
         if (!$ajax) {
-            redirect('view.php?id='.$cm->id, get_string('questionsubmitted', 'hotquestion'));
+            redirect('view.php?id='.$hq->cm->id, get_string('questionsubmitted', 'hotquestion'));
         }
     }
 }
